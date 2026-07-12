@@ -1,0 +1,7 @@
+.git
+.gitignore
+.render
+README.md
+Justfile
+Dockerfile
+.dockerignore
