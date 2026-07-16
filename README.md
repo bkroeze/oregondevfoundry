@@ -2,7 +2,7 @@
 
 Site and contact service for [oregondevfoundry.com](https://oregondevfoundry.com).
 
-The direction combines the decisive, maker-led identity of “The Product Foundry” with the operational `Diagnose / Design / Ship / Operate` process from “The Workshop.” The contact form posts to a small dependency-free Node server, which delivers messages through Mailgun.
+The direction combines the decisive, maker-led identity of “The Product Foundry” with the operational `Diagnose / Design / Ship / Operate` process from “The Workshop.” The contact form posts to a small Node server, which delivers messages through Mailgun.
 
 ## Service setup
 
@@ -58,8 +58,8 @@ IMAGE=ghcr.io/bkroeze/oregon-dev-foundry:latest
 PORT=8090
 ```
 
-No application dependencies or package-install step are required. The site uses Google Fonts with local font fallbacks.
+No npm dependencies or package-install step are required. The site uses Google Fonts with local font fallbacks.
 
 ---
 
-Last updated: July 12, 2026
+Last updated: July 15, 2026
