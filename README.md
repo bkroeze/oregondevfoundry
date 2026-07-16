@@ -4,14 +4,15 @@ Site and contact service for [oregondevfoundry.com](https://oregondevfoundry.com
 
 The direction combines the decisive, maker-led identity of “The Product Foundry” with the operational `Diagnose / Design / Ship / Operate` process from “The Workshop.” The contact form posts to a small dependency-free Node server, which delivers messages through Mailgun.
 
-## Mailgun setup
+## Service setup
 
 1. Add and verify a Mailgun sending domain, preferably `mg.oregondevfoundry.com`.
 2. Add Mailgun's DNS records at the domain provider and wait until Mailgun reports the domain verified.
-3. Copy `.env.example` to `.env` and set the private API key, sending domain, recipient, and sender.
-4. If using a Mailgun sandbox domain, authorize `CONTACT_TO` in Mailgun first. Production sending should use the verified custom domain.
+3. Create a Cloudflare Turnstile widget for the deployed hostname and copy its site and secret keys.
+4. Copy `.env.example` to `.env` and set the Mailgun and Turnstile credentials, sending domain, recipient, and sender.
+5. If using a Mailgun sandbox domain, authorize `CONTACT_TO` in Mailgun first. Production sending should use the verified custom domain.
 
-The Mailgun key exists only on the server. It is never sent to the browser or baked into the image.
+The Mailgun key and Turnstile secret exist only on the server. Neither is sent to the browser or baked into the image; only the public Turnstile site key is exposed.
 
 ```sh
 cp .env.example .env
@@ -20,7 +21,7 @@ just test
 just run
 ```
 
-The form includes browser and server validation, a hidden honeypot, a 16 KB body limit, sanitized provider errors, and a direct-email fallback. For a higher-volume public site, put proxy-level rate limiting or a challenge service in front of `/api/contact`.
+The form includes browser and server validation, Cloudflare Turnstile verification, a hidden honeypot, a 16 KB body limit, bounded provider requests, sanitized provider errors, and a direct-email fallback.
 
 ## Container workflow
 

@@ -132,8 +132,9 @@
         <label>Company <span>(optional)</span><input name="company" autocomplete="organization" maxlength="120"></label>
         <label>What are you trying to change? <textarea name="message" rows="7" minlength="20" maxlength="5000" required></textarea></label>
         <label class="honeypot" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+        <div data-turnstile></div>
         <div class="form-actions">
-          <button class="button button-light" type="submit">Send to the foundry <span>↗</span></button>
+          <button class="button button-light" type="submit" disabled>Send to the foundry <span>↗</span></button>
           <p class="form-status" data-form-status aria-live="polite"></p>
         </div>
       </form>

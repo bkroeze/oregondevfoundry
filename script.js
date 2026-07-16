@@ -19,10 +19,41 @@ document.querySelector('[data-year]').textContent = new Date().getFullYear();
 
 const contactForm = document.querySelector('[data-contact-form]');
 const formStatus = document.querySelector('[data-form-status]');
+const contactButton = contactForm?.querySelector('button[type="submit"]');
+let challengeToken = '';
+let turnstileWidgetId;
+
+async function initializeTurnstile() {
+  if (!contactForm) return;
+  try {
+    const response = await fetch('/api/contact-config');
+    if (!response.ok) throw new Error('Challenge configuration unavailable.');
+    const { turnstileSiteKey } = await response.json();
+    if (!turnstileSiteKey) throw new Error('Challenge configuration unavailable.');
+    await new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.async = true; script.defer = true; script.onload = resolve; script.onerror = reject;
+      document.head.append(script);
+    });
+    turnstileWidgetId = window.turnstile.render(contactForm.querySelector('[data-turnstile]'), {
+      sitekey: turnstileSiteKey,
+      action: 'contact',
+      callback: token => { challengeToken = token; },
+      'expired-callback': () => { challengeToken = ''; },
+      'error-callback': () => { challengeToken = ''; },
+    });
+    contactButton.disabled = false;
+  } catch {
+    formStatus.textContent = 'The contact form is unavailable. Please email us instead.';
+    formStatus.dataset.state = 'error';
+  }
+}
+
+initializeTurnstile();
 
 contactForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const button = contactForm.querySelector('button[type="submit"]');
   const fields = [...contactForm.querySelectorAll('input, textarea')];
   fields.forEach((field) => field.removeAttribute('aria-invalid'));
 
@@ -32,12 +63,18 @@ contactForm?.addEventListener('submit', async (event) => {
     formStatus.dataset.state = 'error';
     return;
   }
+  if (!challengeToken) {
+    formStatus.textContent = 'Please complete the verification challenge.';
+    formStatus.dataset.state = 'error';
+    return;
+  }
 
-  button.disabled = true;
+  contactButton.disabled = true;
   formStatus.textContent = 'Sending…';
   formStatus.dataset.state = '';
   try {
     const payload = Object.fromEntries(new FormData(contactForm));
+    payload.challengeToken = challengeToken;
     const response = await fetch('/api/contact', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -55,6 +92,8 @@ contactForm?.addEventListener('submit', async (event) => {
     formStatus.textContent = error.message || 'Could not send your message. Please email us instead.';
     formStatus.dataset.state = 'error';
   } finally {
-    button.disabled = false;
+    challengeToken = '';
+    if (turnstileWidgetId !== undefined) window.turnstile.reset(turnstileWidgetId);
+    contactButton.disabled = false;
   }
 });
