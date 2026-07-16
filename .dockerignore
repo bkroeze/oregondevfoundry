@@ -5,3 +5,5 @@ README.md
 Justfile
 Dockerfile
 .dockerignore
+.env
+test
