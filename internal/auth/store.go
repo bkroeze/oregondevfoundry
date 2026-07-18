@@ -111,7 +111,7 @@ func Open(path string) (*Store, error) {
 		}
 	}
 
-	db, err := sql.Open("sqlite", path)
+	db, err := sql.Open("sqlite", connectionDSN(path))
 	if err != nil {
 		return nil, fmt.Errorf("open database: %w", err)
 	}
@@ -128,8 +128,6 @@ func (s *Store) Close() error { return s.db.Close() }
 
 func (s *Store) migrate(ctx context.Context) error {
 	const schema = `
-PRAGMA foreign_keys = ON;
-PRAGMA busy_timeout = 5000;
 PRAGMA journal_mode = WAL;
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
@@ -166,6 +164,14 @@ CREATE INDEX IF NOT EXISTS sessions_expires_at ON sessions(expires_at);
 		return err
 	}
 	return nil
+}
+
+func connectionDSN(path string) string {
+	separator := "?"
+	if strings.Contains(path, "?") {
+		separator = "&"
+	}
+	return path + separator + "_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)"
 }
 
 func (s *Store) ensureUserVersion(ctx context.Context) error {

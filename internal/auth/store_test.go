@@ -26,6 +26,31 @@ func TestCustomerStatusDefinitions(t *testing.T) {
 	}
 }
 
+func TestOpenConfiguresEveryConnection(t *testing.T) {
+	store, err := Open(t.TempDir() + "/users.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	store.db.SetMaxIdleConns(0)
+
+	var foreignKeys int
+	if err := store.db.QueryRow(`PRAGMA foreign_keys`).Scan(&foreignKeys); err != nil {
+		t.Fatal(err)
+	}
+	if foreignKeys != 1 {
+		t.Fatalf("foreign_keys=%d", foreignKeys)
+	}
+
+	var busyTimeout int
+	if err := store.db.QueryRow(`PRAGMA busy_timeout`).Scan(&busyTimeout); err != nil {
+		t.Fatal(err)
+	}
+	if busyTimeout != 5000 {
+		t.Fatalf("busy_timeout=%d", busyTimeout)
+	}
+}
+
 func TestUserCRUDCredentialsAndSessions(t *testing.T) {
 	store, err := Open(t.TempDir() + "/users.db")
 	if err != nil {
