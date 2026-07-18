@@ -2,48 +2,67 @@ set dotenv-load
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
 image := env_var_or_default("IMAGE", "ghcr.io/bkroeze/oregon-dev-foundry:latest")
-default_port := env_var_or_default("PORT", "8090")
-container_name := "oregon-dev-foundry"
+templ := "go run github.com/a-h/templ/cmd/templ@v0.3.977"
 
-# Show available commands.
+# Show available recipes.
 default:
     @just --list
 
-# Build the production container. Override the tag with IMAGE=registry/name:tag.
-build:
+# Generate Go source from templ files.
+generate:
+    {{ templ }} generate
+
+# Regenerate templates on changes and restart the app.
+dev:
+    {{ templ }} generate --watch --cmd="go run ./cmd/server" --proxy="http://127.0.0.1:{{ env_var_or_default("PORT", "8080") }}"
+
+# Build the production server binary.
+build: generate
+    mkdir -p bin
+    CGO_ENABLED=0 go build -trimpath -o bin/oregon-dev-foundry ./cmd/server
+
+# Run the server locally (environment is loaded from .env when present).
+run: generate
+    go run ./cmd/server
+
+# Run all tests; injected fakes ensure tests never send mail.
+test:
+    go test -race ./...
+
+# Format Go and templ source.
+fmt:
+    {{ templ }} fmt .
+    gofmt -w cmd internal
+
+# Run Go static analysis.
+lint:
+    go vet ./...
+
+# Verify generation, formatting, tests, vet, and a production build.
+check:
+    #!/usr/bin/env bash
+    before="$(mktemp)"
+    trap 'rm -f "$before"' EXIT
+    {{ templ }} fmt .
+    gofmt -w cmd internal
+    {{ templ }} generate
+    cp internal/templates/page_templ.go "$before"
+    {{ templ }} generate
+    cmp "$before" internal/templates/page_templ.go
+    go test -race ./...
+    go vet ./...
+    mkdir -p bin
+    CGO_ENABLED=0 go build -trimpath -o bin/oregon-dev-foundry ./cmd/server
+
+# Build the production container image.
+docker-build:
     docker build --pull -t "{{ image }}" .
 
-# Run the backend/contact endpoint test suite.
-test:
-    node --test
-
-# Push IMAGE to its configured registry (example: IMAGE=ghcr.io/owner/oregon-dev-foundry:latest just push).
-push: build
+# Push IMAGE to its configured registry.
+docker-push: docker-build
     #!/usr/bin/env bash
     if [[ "{{ image }}" != */* ]]; then
       echo "IMAGE must include a registry/repository before it can be pushed." >&2
       exit 2
     fi
     docker push "{{ image }}"
-
-# Run the container locally; e.g. `just run 3000`.
-run port=default_port: build
-    docker run --rm --name "{{ container_name }}" --env-file .env -e PORT="{{ port }}" -p "{{ port }}:{{ port }}" "{{ image }}"
-
-# Run the container detached; e.g. `just up 3000`.
-up port=default_port: build
-    docker rm -f "{{ container_name }}" >/dev/null 2>&1 || true
-    docker run -d --name "{{ container_name }}" --env-file .env -e PORT="{{ port }}" -p "{{ port }}:{{ port }}" "{{ image }}"
-    @echo "Oregon Dev Foundry: http://127.0.0.1:{{ port }}"
-
-# Stop and remove the detached local container.
-down:
-    docker rm -f "{{ container_name }}"
-
-# Show logs from the detached container.
-logs:
-    docker logs -f "{{ container_name }}"
-
-# Probe the detached container's health endpoint.
-check port=default_port:
-    curl --fail --silent --show-error "http://127.0.0.1:{{ port }}/healthz"

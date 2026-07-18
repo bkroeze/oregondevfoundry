@@ -1,65 +1,95 @@
 # Oregon Dev Foundry
 
-Site and contact service for [oregondevfoundry.com](https://oregondevfoundry.com).
+The standalone Go web application for [oregondevfoundry.com](https://oregondevfoundry.com). It preserves the original site at `/`, serves embedded CSS and JavaScript at `/styles.css` and `/script.js`, and accepts contact inquiries at `POST /api/contact`.
 
-The direction combines the decisive, maker-led identity of “The Product Foundry” with the operational `Diagnose / Design / Ship / Operate` process from “The Workshop.” The contact form posts to a small Node server, which delivers messages through Mailgun.
+## Architecture
 
-## Service setup
+- `cmd/server`: process startup, validated configuration, HTTP timeouts, signal handling, and graceful shutdown.
+- `internal/templates`: [templ](https://templ.guide/) source and generated Go for the page and contact-form fragment.
+- `internal/web`: routes, embedded static assets, request limits, security headers, HTMX responses, and full-page form fallback.
+- `internal/contact`: input validation, Cloudflare Turnstile verification, a testable `Sender` interface, and the production [`mailgun-go/v4`](https://github.com/mailgun/mailgun-go) implementation.
+- `internal/config`: environment loading, defaults, required-value checks, port bounds, and Mailgun-region validation.
 
-1. Add and verify a Mailgun sending domain, preferably `mg.oregondevfoundry.com`.
-2. Add Mailgun's DNS records at the domain provider and wait until Mailgun reports the domain verified.
-3. Create a Cloudflare Turnstile widget for the deployed hostname and copy its site and secret keys.
-4. Copy `.env.example` to `.env` and set the Mailgun and Turnstile credentials, sending domain, recipient, and sender.
-5. If using a Mailgun sandbox domain, authorize `CONTACT_TO` in Mailgun first. Production sending should use the verified custom domain.
+The contact form is an ordinary HTML `POST` form first. With JavaScript available, HTMX swaps only the rendered form fragment and preserves the visual interaction. Without HTMX, the server returns the complete page with the same validation or delivery status, so the form remains accessible. Tests inject fake verification and mail implementations and never contact Mailgun or send real email.
 
-The Mailgun key and Turnstile secret exist only on the server. Neither is sent to the browser or baked into the image; only the public Turnstile site key is exposed.
+## Requirements
+
+- Go 1.24 or newer
+- `just` (optional, but recommended)
+- Docker (optional, for container builds)
+
+The templ CLI is invoked through `go run` at a pinned version, so it does not need to be installed globally.
+
+## Configuration
+
+Copy the example and replace every placeholder:
 
 ```sh
 cp .env.example .env
 $EDITOR .env
-just test
-just run
 ```
 
-The form includes browser and server validation, Cloudflare Turnstile verification, a hidden honeypot, a 16 KB body limit, bounded provider requests, sanitized provider errors, and a direct-email fallback.
+| Variable | Required | Description |
+| --- | --- | --- |
+| `PORT` | No | HTTP port, default `8080`; must be from 1 through 65535. |
+| `MAILGUN_API_KEY` | Yes | Private Mailgun API key. |
+| `MAILGUN_DOMAIN` | Yes | Verified sending domain, such as `mg.oregondevfoundry.com`. |
+| `MAILGUN_REGION` | No | `us` (default) or `eu`. |
+| `CONTACT_TO` | Yes | Destination mailbox. Sandbox domains must authorize it. |
+| `CONTACT_FROM` | Yes | Verified sender, including an optional display name. |
+| `TURNSTILE_SITE_KEY` | Yes | Public Cloudflare Turnstile widget key. |
+| `TURNSTILE_SECRET_KEY` | Yes | Private Turnstile verification key. |
+| `IMAGE` | No | Image tag used by the Docker recipes. |
 
-## Container workflow
+Mailgun and Turnstile secrets remain server-side. Startup fails with a clear error if required values are absent or if `PORT` or `MAILGUN_REGION` is invalid.
 
-The production image uses Node on Alpine, defaults to port `8080`, runs as the non-root `node` user, and exposes `/healthz` for container health checks. The backend is intentionally narrow and swappable: the frontend knows only `POST /api/contact`.
+## Development
 
 ```sh
-# Test and build
-just test
-just build
-
-# Run on the configured default port, or specify one
-just run
-just run 3000
-
-# Start detached, verify it, inspect logs, and stop it
-just up 3000
-just check 3000
-just logs
-just down
+just generate  # regenerate internal/templates/page_templ.go
+just dev       # watch templ files and restart through templ's development proxy
+just run       # generate and run directly
 ```
 
-The same port is configured inside the container and published on the host. Ports below `1024` are inappropriate because the image deliberately runs unprivileged.
+The service logs its listen address. Stop it with `Ctrl-C`; `SIGINT` and `SIGTERM` trigger a bounded graceful shutdown.
 
-To tag and push to a registry, set `IMAGE`:
+### Quality commands
 
 ```sh
-IMAGE=ghcr.io/bkroeze/oregon-dev-foundry:latest just push
+just fmt        # templ fmt and gofmt
+just test       # go test -race ./...
+just lint       # go vet ./...
+just build      # production-style static Go binary in bin/
+just check      # generation consistency, format, tests, vet, and build
 ```
 
-Local defaults can live in `.env` alongside the Mailgun settings:
+`bin/` is ignored. Generated `*_templ.go` files are source artifacts and should remain synchronized with their `.templ` inputs.
 
-```dotenv
-IMAGE=ghcr.io/bkroeze/oregon-dev-foundry:latest
-PORT=8090
+## HTTP behavior
+
+| Method and path | Purpose |
+| --- | --- |
+| `GET /` | Render the site. |
+| `GET /styles.css` | Embedded stylesheet. |
+| `GET /script.js` | Embedded navigation/year/HTMX integration script. |
+| `POST /api/contact` | Validate Turnstile and send the inquiry through Mailgun. |
+| `GET /healthz` | Container health probe; returns `ok`. |
+| `GET /up` | Compatibility health alias; returns `ok`. |
+
+Contact requests are limited to 16 KiB. User fields have server-side length and email checks, the honeypot suppresses automated sends, provider operations are bounded, and provider details are logged rather than exposed in HTTP responses. A direct `mailto:` link remains visible if the form or an external provider is unavailable.
+
+## Container deployment
+
+The Dockerfile uses a Go build stage and a small Alpine runtime containing only CA certificates and the compiled binary, which runs under an unprivileged numeric UID. Static assets and templates are embedded in that binary. The image exposes port `8080` and includes a `/healthz` health check.
+
+```sh
+just docker-build
+
+docker run --rm --env-file .env -p 8080:8080 \
+  ghcr.io/bkroeze/oregon-dev-foundry:latest
+
+# Set IMAGE to the intended registry/repository before publishing.
+IMAGE=ghcr.io/bkroeze/oregon-dev-foundry:latest just docker-push
 ```
 
-No npm dependencies or package-install step are required. The site uses Google Fonts with local font fallbacks.
-
----
-
-Last updated: July 15, 2026
+Do not bake `.env` into an image or commit it. Configure production secrets through the deployment platform.
