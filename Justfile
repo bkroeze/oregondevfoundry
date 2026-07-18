@@ -25,6 +25,23 @@ build: generate
 run: generate
     go run ./cmd/server
 
+# Manage users: `just users list|show|create|update|delete [username] [display-name] [role] [has-purchases]`.
+users operation="list" username="" display_name="" role="user" has_purchases="false":
+    #!/usr/bin/env bash
+    operation={{ quote(operation) }}
+    username={{ quote(username) }}
+    display_name={{ quote(display_name) }}
+    role={{ quote(role) }}
+    has_purchases={{ quote(has_purchases) }}
+    case "$operation" in
+      list) exec go run ./cmd/users list ;;
+      show) exec go run ./cmd/users show --username "$username" ;;
+      create) exec go run ./cmd/users create --username "$username" --display-name "$display_name" --role "$role" --has-purchases="$has_purchases" --password-stdin ;;
+      update) exec go run ./cmd/users update --username "$username" --display-name "$display_name" --role "$role" --has-purchases="$has_purchases" ;;
+      delete) exec go run ./cmd/users delete --username "$username" --confirm "$username" ;;
+      *) printf 'error: "operation must be list, show, create, update, or delete"\n' ; exit 2 ;;
+    esac
+
 # Run all tests; injected fakes ensure tests never send mail.
 test:
     go test -race ./...
@@ -41,14 +58,15 @@ lint:
 # Verify generation, formatting, tests, vet, and a production build.
 check:
     #!/usr/bin/env bash
-    before="$(mktemp)"
-    trap 'rm -f "$before"' EXIT
+    before="$(mktemp -d)"
+    trap 'rm -rf "$before"' EXIT
     {{ templ }} fmt .
     gofmt -w cmd internal
     {{ templ }} generate
-    cp internal/templates/page_templ.go "$before"
+    cp internal/templates/page_templ.go internal/templates/auth_templ.go "$before/"
     {{ templ }} generate
-    cmp "$before" internal/templates/page_templ.go
+    cmp "$before/page_templ.go" internal/templates/page_templ.go
+    cmp "$before/auth_templ.go" internal/templates/auth_templ.go
     go test -race ./...
     go vet ./...
     mkdir -p bin

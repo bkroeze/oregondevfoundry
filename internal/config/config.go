@@ -12,27 +12,42 @@ import (
 const defaultPort = 8080
 
 type Config struct {
-	Address            string
-	ShutdownTimeout    time.Duration
-	MailgunAPIKey      string
-	MailgunDomain      string
-	MailgunRegion      string
-	ContactTo          string
-	ContactFrom        string
-	TurnstileSiteKey   string
-	TurnstileSecretKey string
+	Address             string
+	ShutdownTimeout     time.Duration
+	MailgunAPIKey       string
+	MailgunDomain       string
+	MailgunRegion       string
+	ContactTo           string
+	ContactFrom         string
+	TurnstileSiteKey    string
+	TurnstileSecretKey  string
+	DatabasePath        string
+	SessionCookieSecure bool
 }
 
 func Load() (Config, error) {
 	cfg := Config{
-		ShutdownTimeout:    10 * time.Second,
-		MailgunAPIKey:      strings.TrimSpace(os.Getenv("MAILGUN_API_KEY")),
-		MailgunDomain:      strings.TrimSpace(os.Getenv("MAILGUN_DOMAIN")),
-		MailgunRegion:      strings.ToLower(strings.TrimSpace(os.Getenv("MAILGUN_REGION"))),
-		ContactTo:          strings.TrimSpace(os.Getenv("CONTACT_TO")),
-		ContactFrom:        strings.TrimSpace(os.Getenv("CONTACT_FROM")),
-		TurnstileSiteKey:   strings.TrimSpace(os.Getenv("TURNSTILE_SITE_KEY")),
-		TurnstileSecretKey: strings.TrimSpace(os.Getenv("TURNSTILE_SECRET_KEY")),
+		ShutdownTimeout:     10 * time.Second,
+		MailgunAPIKey:       strings.TrimSpace(os.Getenv("MAILGUN_API_KEY")),
+		MailgunDomain:       strings.TrimSpace(os.Getenv("MAILGUN_DOMAIN")),
+		MailgunRegion:       strings.ToLower(strings.TrimSpace(os.Getenv("MAILGUN_REGION"))),
+		ContactTo:           strings.TrimSpace(os.Getenv("CONTACT_TO")),
+		ContactFrom:         strings.TrimSpace(os.Getenv("CONTACT_FROM")),
+		TurnstileSiteKey:    strings.TrimSpace(os.Getenv("TURNSTILE_SITE_KEY")),
+		TurnstileSecretKey:  strings.TrimSpace(os.Getenv("TURNSTILE_SECRET_KEY")),
+		DatabasePath:        strings.TrimSpace(os.Getenv("DATABASE_PATH")),
+		SessionCookieSecure: true,
+	}
+
+	if cfg.DatabasePath == "" {
+		cfg.DatabasePath = "data/oregon-dev-foundry.db"
+	}
+	if value := strings.TrimSpace(os.Getenv("SESSION_COOKIE_SECURE")); value != "" {
+		secure, err := strconv.ParseBool(value)
+		if err != nil {
+			return Config{}, errors.New("SESSION_COOKIE_SECURE must be true or false")
+		}
+		cfg.SessionCookieSecure = secure
 	}
 
 	port := defaultPort

@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/bkroeze/oregon-dev-foundry/internal/auth"
 	"github.com/bkroeze/oregon-dev-foundry/internal/config"
 	"github.com/bkroeze/oregon-dev-foundry/internal/contact"
 	"github.com/bkroeze/oregon-dev-foundry/internal/web"
@@ -28,12 +29,18 @@ func run() error {
 		return err
 	}
 
+	users, err := auth.Open(cfg.DatabasePath)
+	if err != nil {
+		return err
+	}
+	defer users.Close()
+
 	client := &http.Client{Timeout: 10 * time.Second}
 	sender := contact.NewMailgunSender(cfg.MailgunDomain, cfg.MailgunAPIKey, cfg.MailgunRegion, cfg.ContactFrom, cfg.ContactTo)
 	verifier := contact.NewTurnstileVerifier(cfg.TurnstileSecretKey, client)
 	server := &http.Server{
 		Addr:              cfg.Address,
-		Handler:           web.NewHandler(cfg, sender, verifier),
+		Handler:           web.NewHandler(cfg, sender, verifier, users),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      15 * time.Second,

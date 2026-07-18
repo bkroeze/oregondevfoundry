@@ -6,7 +6,7 @@ type ContactFormData struct {
 	Status, State, TurnstileSiteKey string
 }
 
-templ Page(form ContactFormData) {
+templ Page(form ContactFormData, account AccountView) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -17,23 +17,11 @@ templ Page(form ContactFormData) {
 			<link rel="preconnect" href="https://fonts.googleapis.com"/>
 			<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 			<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-			<link rel="stylesheet" href="styles.css"/>
+			<link rel="stylesheet" href="/styles.css"/>
 		</head>
 		<body>
 			<a class="skip-link" href="#main">Skip to content</a>
-			<header class="site-header" data-header>
-				<a class="brand" href="#top" aria-label="Oregon Dev Foundry home">
-					<span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-					<span>Oregon Dev Foundry</span>
-				</a>
-				<button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
-				<nav id="site-nav" class="site-nav" aria-label="Primary navigation">
-					<a href="#work">Work</a>
-					<a href="#process">Process</a>
-					<a href="#about">About</a>
-					<a class="nav-cta" href="#contact">Start a conversation ↗</a>
-				</nav>
-			</header>
+			@SiteHeader(account)
 			<main id="main">
 				<section id="top" class="hero">
 					<div class="hero-copy">
