@@ -188,4 +188,20 @@ INSERT INTO users (id, username, display_name, role, created_at, updated_at) VAL
 	if version != 1 {
 		t.Fatalf("legacy user version=%d", version)
 	}
+	legacy, err := store.UserByID(t.Context(), 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.UpdateUser(t.Context(), legacy.ID, UpdateUserParams{
+		Username:        legacy.Username,
+		DisplayName:     legacy.DisplayName,
+		Role:            legacy.Role,
+		Password:        []byte(storeTestPassword),
+		ExpectedVersion: legacy.Version,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.Authenticate(t.Context(), legacy.Username, []byte(storeTestPassword)); err != nil {
+		t.Fatalf("authenticate migrated user: %v", err)
+	}
 }

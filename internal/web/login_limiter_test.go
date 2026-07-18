@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -67,5 +68,21 @@ func TestSuccessfulLoginDoesNotClearClientFailures(t *testing.T) {
 	limiter.failed(client, "victim.user")
 	if _, allowed := limiter.begin(client, "another.user"); allowed {
 		t.Fatal("successful own-account login cleared the client failure bucket")
+	}
+}
+
+func TestLoginRateLimitFollowsAccountAcrossClients(t *testing.T) {
+	limiter := newLoginLimiter(1)
+	for attempt := range loginFailureLimit {
+		client := fmt.Sprintf("192.0.2.%d", attempt+1)
+		release, allowed := limiter.begin(client, " Victim.User ")
+		if !allowed {
+			t.Fatalf("account blocked before failure limit on attempt %d", attempt+1)
+		}
+		release()
+		limiter.failed(client, "victim.user")
+	}
+	if _, allowed := limiter.begin("198.51.100.10", "VICTIM.USER"); allowed {
+		t.Fatal("account limit reset when client address changed")
 	}
 }
