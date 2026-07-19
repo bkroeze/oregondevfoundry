@@ -28,6 +28,35 @@ a { color: inherit; }
 .site-nav > a:not(.nav-cta):hover { text-decoration: underline; text-underline-offset: 5px; }
 .nav-cta { padding: .8rem 1rem; background: var(--ink); color: white; }
 .menu-button { display: none; border: 0; background: transparent; font: 500 .75rem "DM Mono", monospace; text-transform: uppercase; }
+.site-header > .brand { margin-right: auto; }
+.profile-menu { position: relative; flex: 0 0 auto; }
+.profile-menu summary { width: 44px; height: 44px; display: grid; place-items: center; border: 2px solid var(--ink); background: var(--paper); cursor: pointer; list-style: none; }
+.profile-menu summary::-webkit-details-marker { display: none; }
+.profile-menu summary svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: square; }
+.profile-menu summary:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+.profile-menu[open] summary { background: var(--yellow); }
+.profile-dropdown { position: absolute; top: calc(100% + .65rem); left: 0; z-index: 20; width: max-content; min-width: 190px; padding: .55rem; border: 2px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); background: #faf8f3; font: 500 .72rem/1.35 "DM Mono", monospace; text-transform: uppercase; }
+.profile-dropdown p { margin: 0; padding: .7rem .75rem; border-bottom: 1px solid var(--line); color: var(--muted); text-transform: none; }
+.profile-dropdown a, .profile-dropdown button { width: 100%; min-height: 42px; padding: .7rem .75rem; display: flex; align-items: center; border: 0; background: transparent; color: var(--ink); text-align: left; text-decoration: none; font: inherit; text-transform: inherit; cursor: pointer; }
+.profile-dropdown a:hover, .profile-dropdown button:hover { background: var(--hot); }
+.profile-dropdown form { margin: 0; border-top: 1px solid var(--line); }
+
+.account-main { width: min(100%, var(--max)); min-height: calc(100svh - 204px); padding: clamp(4rem, 9vw, 8rem) var(--pad); display: grid; place-items: start center; background: var(--paper-deep); }
+.account-panel { width: min(100%, 580px); padding: clamp(1.5rem, 4vw, 3.5rem); border: 2px solid var(--ink); box-shadow: 12px 12px 0 var(--yellow); background: #faf8f3; }
+.account-panel-wide { width: min(100%, 820px); }
+.account-panel h1 { margin: 0 0 1.5rem; font-size: clamp(3rem, 8vw, 6.5rem); line-height: .9; letter-spacing: -.07em; }
+.status-badge { display: inline-block; margin: 0 0 2rem; padding: .7rem .8rem; border: 1px solid var(--ink); background: var(--yellow); font: .72rem "DM Mono", monospace; text-transform: uppercase; }
+.account-form label { display: grid; gap: .55rem; margin-bottom: 1.25rem; font: .7rem "DM Mono", monospace; text-transform: uppercase; }
+.account-form input { width: 100%; min-height: 50px; padding: .8rem; border: 1px solid var(--ink); border-radius: 0; background: white; color: var(--ink); font: 1rem "DM Sans", sans-serif; }
+.account-form input:focus { outline: 3px solid var(--blue); outline-offset: 2px; }
+.account-form button { cursor: pointer; }
+.account-error { margin: 0 0 1.25rem; padding: .8rem; border-left: 5px solid var(--hot); background: #f7d4cd; }
+.account-details { margin: 0; display: grid; border: 2px solid var(--ink); }
+.account-details div { padding: 1.1rem; display: grid; grid-template-columns: minmax(100px, .35fr) 1fr; gap: 1rem; border-bottom: 1px solid var(--ink); }
+.account-details div:last-child { border-bottom: 0; }
+.account-details dt { font: .7rem "DM Mono", monospace; text-transform: uppercase; }
+.account-details dd { margin: 0; }
+.account-intro { max-width: 620px; font-size: 1.1rem; line-height: 1.6; }
 
 main, footer, .site-header { width: min(100%, var(--max)); }
 main, footer { margin-inline: auto; }
@@ -120,6 +149,10 @@ footer p { margin: 0; }
   .site-nav { position: absolute; top: 64px; left: 0; right: 0; padding: 1.25rem var(--pad) 1.5rem; display: none; align-items: stretch; background: var(--paper); border-bottom: 2px solid var(--ink); }
   .site-nav.open { display: grid; }
   .site-nav a { min-height: 44px; display: flex; align-items: center; }
+  .site-header { gap: .75rem; }
+  .site-header > .brand { font-size: .78rem; }
+  .site-header > .brand .brand-mark { display: none; }
+  .profile-dropdown { position: fixed; top: 64px; left: var(--pad); right: var(--pad); width: auto; }
   .hero { min-height: auto; grid-template-columns: 1fr; }
   .foundry-machine { width: min(80%, 520px); justify-self: end; }
   .section-heading, .work-statement, .about-section, .contact-section { grid-template-columns: 1fr; }

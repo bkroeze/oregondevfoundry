@@ -6,4 +6,4 @@ Justfile
 Dockerfile
 .dockerignore
 .env
-test
+bin

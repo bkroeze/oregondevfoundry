@@ -1,0 +1,190 @@
+package templates
+
+type AccountView struct {
+	Authenticated bool
+	Username      string
+	DisplayName   string
+	Role          string
+	Status        string
+	CSRFToken     string
+}
+
+type LoginData struct {
+	Account  AccountView
+	Username string
+	Error    string
+	Next     string
+}
+
+templ SiteHeader(account AccountView) {
+	<header class="site-header" data-header>
+		<details class="profile-menu">
+			<summary aria-label="Open account menu">
+				<svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>
+			</summary>
+			<div class="profile-dropdown">
+				if account.Authenticated {
+					<p>{ account.DisplayName }</p>
+					<a href="/profile">User profile</a>
+					if account.Role == "client" {
+						<a href="/client">Client profile</a>
+					}
+					if account.Role == "admin" {
+						<a href="/admin">Admin</a>
+					}
+					<form action="/logout" method="post">
+						<input type="hidden" name="csrf_token" value={ account.CSRFToken }/>
+						<button type="submit">Log out</button>
+					</form>
+				} else {
+					<a href="/login">Log in</a>
+				}
+			</div>
+		</details>
+		<a class="brand" href="/" aria-label="Oregon Dev Foundry home">
+			<span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+			<span>Oregon Dev Foundry</span>
+		</a>
+		<button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+		<nav id="site-nav" class="site-nav" aria-label="Primary navigation">
+			<a href="/#work">Work</a>
+			<a href="/#process">Process</a>
+			<a href="/#about">About</a>
+			<a class="nav-cta" href="/#contact">Start a conversation ↗</a>
+		</nav>
+	</header>
+}
+
+templ PageHead(title string) {
+	<head>
+		<meta charset="utf-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<meta name="description" content="Oregon Dev Foundry account access."/>
+		<title>{ title } · Oregon Dev Foundry</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com"/>
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+		<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+		<link rel="stylesheet" href="/styles.css"/>
+	</head>
+}
+
+templ PageFooter() {
+	<footer>
+		<a class="brand footer-brand" href="/"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>Oregon Dev Foundry</span></a>
+		<p>Independent software company · Portland, Oregon</p>
+		<p>© <span data-year></span> ODF</p>
+	</footer>
+	<script src="/script.js"></script>
+}
+
+templ LoginPage(data LoginData) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@PageHead("Log in")
+		<body>
+			<a class="skip-link" href="#main">Skip to content</a>
+			@SiteHeader(data.Account)
+			<main id="main" class="account-main">
+				<section class="account-panel">
+					<p class="kicker">Account access</p>
+					<h1>Log in</h1>
+					<p class="status-badge">Customer status: <strong>Visitor</strong></p>
+					<form class="account-form" action="/login" method="post">
+						<input type="hidden" name="csrf_token" value={ data.Account.CSRFToken }/>
+						<input type="hidden" name="next" value={ data.Next }/>
+						<label>Username<input name="username" autocomplete="username" maxlength="64" required autofocus value={ data.Username }/></label>
+						<label>Password<input name="password" type="password" autocomplete="current-password" maxlength="72" required/></label>
+						if data.Error != "" {
+							<p class="account-error" role="alert">{ data.Error }</p>
+						}
+						<button class="button button-primary" type="submit">Log in <span>↗</span></button>
+					</form>
+				</section>
+			</main>
+			@PageFooter()
+		</body>
+	</html>
+}
+
+templ UserProfilePage(account AccountView) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@PageHead("User profile")
+		<body>
+			<a class="skip-link" href="#main">Skip to content</a>
+			@SiteHeader(account)
+			<main id="main" class="account-main">
+				<section class="account-panel account-panel-wide">
+					<p class="kicker">Account / User profile</p>
+					<h1>{ account.DisplayName }</h1>
+					<p class="status-badge">Customer status: <strong>{ account.Status }</strong></p>
+					<dl class="account-details">
+						<div><dt>Username</dt><dd>{ account.Username }</dd></div>
+						<div><dt>Role</dt><dd>{ account.Role }</dd></div>
+					</dl>
+				</section>
+			</main>
+			@PageFooter()
+		</body>
+	</html>
+}
+
+templ ClientLandingPage(account AccountView) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@PageHead("Client profile")
+		<body>
+			<a class="skip-link" href="#main">Skip to content</a>
+			@SiteHeader(account)
+			<main id="main" class="account-main">
+				<section class="account-panel account-panel-wide">
+					<p class="kicker">Account / Client profile</p>
+					<h1>Client landing</h1>
+					<p class="status-badge">Customer status: <strong>{ account.Status }</strong></p>
+					<p class="account-intro">This is your client profile landing page. Client services will be added in a later round.</p>
+				</section>
+			</main>
+			@PageFooter()
+		</body>
+	</html>
+}
+
+templ AdminLandingPage(account AccountView) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@PageHead("Admin")
+		<body>
+			<a class="skip-link" href="#main">Skip to content</a>
+			@SiteHeader(account)
+			<main id="main" class="account-main">
+				<section class="account-panel account-panel-wide">
+					<p class="kicker">Account / Administration</p>
+					<h1>Admin landing</h1>
+					<p class="status-badge">Customer status: <strong>{ account.Status }</strong></p>
+					<p class="account-intro">Administrative account access is active. Operational tools will be added in later rounds.</p>
+				</section>
+			</main>
+			@PageFooter()
+		</body>
+	</html>
+}
+
+templ ForbiddenPage(account AccountView) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@PageHead("Access denied")
+		<body>
+			<a class="skip-link" href="#main">Skip to content</a>
+			@SiteHeader(account)
+			<main id="main" class="account-main">
+				<section class="account-panel">
+					<p class="kicker">Authorization boundary</p>
+					<h1>Access denied</h1>
+					<p class="account-intro">Your account does not have access to this page.</p>
+					<a class="button button-primary" href="/profile">Return to profile <span>↗</span></a>
+				</section>
+			</main>
+			@PageFooter()
+		</body>
+	</html>
+}
