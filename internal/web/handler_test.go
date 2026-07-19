@@ -58,6 +58,12 @@ func TestPublicRoutes(t *testing.T) {
 		{"/healthz", "ok\n"},
 		{"/up", "ok\n"},
 		{"/api/contact-config", `"turnstileSiteKey":"site-key"`},
+		{"/services", "Custom QR code signage"},
+		{"/services", "/shop/vending-signage"},
+		{"/shop/vending-signage", "Build your sign"},
+		{"/shop/vending-signage", "No frame"},
+		{"/shop/vending-signage", "magnetic backing"},
+		{"/shop/vending-signage", "booth sign"},
 		{"/login", "Customer status"},
 	} {
 		t.Run(test.path, func(t *testing.T) {
