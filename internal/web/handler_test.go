@@ -64,6 +64,9 @@ func TestPublicRoutes(t *testing.T) {
 		{"/shop/vending-signage", "No frame"},
 		{"/shop/vending-signage", "magnetic backing"},
 		{"/shop/vending-signage", "booth sign"},
+		{"/services/ai-concierge", "AI Concierge"},
+		{"/services/ai-concierge", "Find the busywork"},
+		{"/services/ai-concierge", "Request an assessment"},
 		{"/login", "Customer status"},
 	} {
 		t.Run(test.path, func(t *testing.T) {
@@ -74,6 +77,29 @@ func TestPublicRoutes(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestAIConciergePageIsUnlinked guards the deliberate decision to keep the
+// AI Concierge landing page dark: reachable by direct URL but not linked from
+// the homepage or the public services page, and kept out of search indexes.
+func TestAIConciergePageIsUnlinked(t *testing.T) {
+	handler := testHandler(t, &fakeSender{}, fakeVerifier{})
+	for _, path := range []string{"/", "/services"} {
+		t.Run(path, func(t *testing.T) {
+			response := httptest.NewRecorder()
+			handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, path, nil))
+			if strings.Contains(response.Body.String(), "ai-concierge") {
+				t.Fatalf("%s must not link to the AI Concierge page", path)
+			}
+		})
+	}
+	t.Run("noindex", func(t *testing.T) {
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/services/ai-concierge", nil))
+		if got := response.Header().Get("X-Robots-Tag"); got != "noindex, nofollow" {
+			t.Fatalf("X-Robots-Tag = %q, want %q", got, "noindex, nofollow")
+		}
+	})
 }
 
 func TestContactHTMXSuccessUsesInjectedDependencies(t *testing.T) {

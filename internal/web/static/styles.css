@@ -172,6 +172,14 @@ footer p { margin: 0; }
 .qr-grid i.on { background: var(--ink); }
 .qr-url { margin: 1rem 0 0; padding-top: .8rem; border-top: 1px solid var(--ink); text-align: center; font: .7rem "DM Mono", monospace; word-break: break-all; }
 
+/* Product: AI Concierge report mock */
+.report-mock { max-width: 100%; padding: clamp(1.25rem, 3vw, 2rem); border: 2px solid var(--ink); background: #faf7f0; box-shadow: 14px 14px 0 var(--blue); transform: rotate(2deg); }
+.report-headline { margin: 0 0 1.1rem; font: 500 .75rem "DM Mono", monospace; text-transform: uppercase; letter-spacing: .05em; }
+.report-rows { display: grid; gap: .6rem; }
+.report-rows span { display: flex; gap: .8rem; align-items: baseline; padding: .75rem .85rem; background: white; border: 2px solid var(--ink); font-size: .92rem; line-height: 1.3; }
+.report-rows b { flex: none; font: 500 .7rem "DM Mono", monospace; color: var(--hot); }
+.report-foot { margin: 1.1rem 0 0; padding-top: .8rem; border-top: 1px solid var(--ink); font: .7rem "DM Mono", monospace; text-transform: uppercase; }
+
 /* Product configurator */
 .product-config-section { background: #faf8f3; }
 .product-config { max-width: 780px; }
