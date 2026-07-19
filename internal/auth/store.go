@@ -111,7 +111,7 @@ func Open(path string) (*Store, error) {
 		}
 	}
 
-	db, err := sql.Open("sqlite", path)
+	db, err := sql.Open("sqlite", connectionDSN(path))
 	if err != nil {
 		return nil, fmt.Errorf("open database: %w", err)
 	}
@@ -128,8 +128,6 @@ func (s *Store) Close() error { return s.db.Close() }
 
 func (s *Store) migrate(ctx context.Context) error {
 	const schema = `
-PRAGMA foreign_keys = ON;
-PRAGMA busy_timeout = 5000;
 PRAGMA journal_mode = WAL;
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
@@ -166,6 +164,14 @@ CREATE INDEX IF NOT EXISTS sessions_expires_at ON sessions(expires_at);
 		return err
 	}
 	return nil
+}
+
+func connectionDSN(path string) string {
+	separator := "?"
+	if strings.Contains(path, "?") {
+		separator = "&"
+	}
+	return path + separator + "_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)"
 }
 
 func (s *Store) ensureUserVersion(ctx context.Context) error {
@@ -354,8 +360,18 @@ func (s *Store) UpdateUser(ctx context.Context, id int64, params UpdateUserParam
 		return User{}, ErrConcurrentUpdate
 	}
 	if len(hash) > 0 {
-		if _, err := tx.ExecContext(ctx, `UPDATE auth_identities SET subject = ?, credential_hash = ? WHERE user_id = ? AND provider = ?`, params.Username, string(hash), id, PasswordProvider); err != nil {
+		result, err := tx.ExecContext(ctx, `UPDATE auth_identities SET subject = ?, credential_hash = ? WHERE user_id = ? AND provider = ?`, params.Username, string(hash), id, PasswordProvider)
+		if err != nil {
 			return User{}, fmt.Errorf("update password identity: %w", err)
+		}
+		changed, err := result.RowsAffected()
+		if err != nil {
+			return User{}, fmt.Errorf("read updated password identities: %w", err)
+		}
+		if changed == 0 {
+			if _, err := tx.ExecContext(ctx, `INSERT INTO auth_identities (user_id, provider, subject, credential_hash) VALUES (?, ?, ?, ?)`, id, PasswordProvider, params.Username, string(hash)); err != nil {
+				return User{}, fmt.Errorf("insert password identity: %w", err)
+			}
 		}
 		if _, err := tx.ExecContext(ctx, `DELETE FROM sessions WHERE user_id = ?`, id); err != nil {
 			return User{}, fmt.Errorf("revoke user sessions: %w", err)

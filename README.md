@@ -50,7 +50,7 @@ Mailgun and Turnstile secrets remain server-side. Startup fails with a clear err
 ## Development
 
 ```sh
-just generate  # regenerate internal/templates/page_templ.go
+just generate  # regenerate Go sources from all templ files
 just dev       # watch templ files and restart through templ's development proxy
 just run       # generate and run directly
 ```
@@ -99,6 +99,7 @@ just check      # generation consistency, format, tests, vet, and build
 | `GET /admin` | Admin-only landing page. |
 | `GET /styles.css` | Embedded stylesheet. |
 | `GET /script.js` | Embedded navigation/year/HTMX integration script. |
+| `GET /api/contact-config` | Return the public Turnstile site key. |
 | `POST /api/contact` | Validate Turnstile and send the inquiry through Mailgun. |
 | `GET /healthz` | Container health probe; returns `ok`. |
 | `GET /up` | Compatibility health alias; returns `ok`. |
@@ -107,10 +108,18 @@ Contact requests are limited to 16 KiB. User fields have server-side length and 
 
 ## Container deployment
 
-The Dockerfile uses a Go build stage and a small Alpine runtime containing only CA certificates and the compiled binary, which runs under an unprivileged numeric UID. Static assets and templates are embedded in that binary. SQLite data lives under `/data`, which must be mounted persistently. The image exposes port `8080` and includes a `/healthz` health check.
+The Dockerfile uses a Go build stage and a small Alpine runtime containing CA certificates, the server, and the user-administration binary. The binaries run under an unprivileged numeric UID. Static assets and templates are embedded in the server. SQLite data lives under `/data`, which must be mounted persistently. The image exposes port `8080` and includes a `/healthz` health check.
 
 ```sh
 just docker-build
+
+# Before the first server start, create the initial administrator in the same volume.
+read -rsp "Initial admin password: " PASSWORD; printf '\n'
+printf '%s\n' "$PASSWORD" | docker run --rm -i \
+  --entrypoint /usr/local/bin/users \
+  -v odf-data:/data ghcr.io/bkroeze/oregon-dev-foundry:latest \
+  create --username admin --display-name "Administrator" --role admin --password-stdin
+unset PASSWORD
 
 docker run --rm --env-file .env -p 8080:8080 \
   -v odf-data:/data ghcr.io/bkroeze/oregon-dev-foundry:latest

@@ -98,7 +98,7 @@ func (l *loginLimiter) succeeded(client, username string) {
 }
 
 func loginKeys(client, username string) (string, string) {
-	return "ip:" + client, "account:" + client + "\x00" + strings.ToLower(strings.TrimSpace(username))
+	return "ip:" + client, "account:" + strings.ToLower(strings.TrimSpace(username))
 }
 
 func loginClient(r *http.Request) string {
