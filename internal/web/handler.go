@@ -50,6 +50,9 @@ func NewHandler(cfg config.Config, sender contact.Sender, verifier contact.Verif
 	mux.HandleFunc("POST /api/contact", h.submitContact)
 	mux.Handle("GET /styles.css", cache(http.FileServer(http.FS(static))))
 	mux.Handle("GET /script.js", cache(http.FileServer(http.FS(static))))
+	mux.HandleFunc("GET /services", h.servicesPage)
+	mux.HandleFunc("GET /shop/vending-signage", h.vendingSignagePage)
+	mux.HandleFunc("GET /services/ai-concierge", h.aiConciergePage)
 	mux.HandleFunc("GET /login", h.loginPage)
 	mux.HandleFunc("POST /login", h.login)
 	mux.HandleFunc("POST /logout", h.logout)
@@ -78,6 +81,21 @@ func (h Handler) page(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.render(w, r, http.StatusOK, templates.ContactFormData{})
+}
+
+func (h Handler) servicesPage(w http.ResponseWriter, r *http.Request) {
+	h.renderComponent(w, r, http.StatusOK, templates.ServicesPage(h.accountView(w, r)))
+}
+
+func (h Handler) vendingSignagePage(w http.ResponseWriter, r *http.Request) {
+	h.renderComponent(w, r, http.StatusOK, templates.VendingSignagePage(h.accountView(w, r)))
+}
+
+func (h Handler) aiConciergePage(w http.ResponseWriter, r *http.Request) {
+	// Deliberately dark: unlinked from the site and kept out of search
+	// indexes until the offer is ready to launch publicly.
+	w.Header().Set("X-Robots-Tag", "noindex, nofollow")
+	h.renderComponent(w, r, http.StatusOK, templates.AIConciergePage(h.accountView(w, r)))
 }
 
 func (h Handler) loginPage(w http.ResponseWriter, r *http.Request) {

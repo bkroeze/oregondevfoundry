@@ -106,7 +106,7 @@ func SiteHeader(account AccountView) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div></details> <a class=\"brand\" href=\"/\" aria-label=\"Oregon Dev Foundry home\"><span class=\"brand-mark\" aria-hidden=\"true\"><i></i><i></i><i></i><i></i></span> <span>Oregon Dev Foundry</span></a> <button class=\"menu-button\" type=\"button\" aria-expanded=\"false\" aria-controls=\"site-nav\">Menu</button><nav id=\"site-nav\" class=\"site-nav\" aria-label=\"Primary navigation\"><a href=\"/#work\">Work</a> <a href=\"/#process\">Process</a> <a href=\"/#about\">About</a> <a class=\"nav-cta\" href=\"/#contact\">Start a conversation ↗</a></nav></header>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div></details> <a class=\"brand\" href=\"/\" aria-label=\"Oregon Dev Foundry home\"><span class=\"brand-mark\" aria-hidden=\"true\"><i></i><i></i><i></i><i></i></span> <span>Oregon Dev Foundry</span></a> <button class=\"menu-button\" type=\"button\" aria-expanded=\"false\" aria-controls=\"site-nav\">Menu</button><nav id=\"site-nav\" class=\"site-nav\" aria-label=\"Primary navigation\"><a href=\"/services\">Services</a> <a href=\"/#work\">Work</a> <a href=\"/#process\">Process</a> <a href=\"/#about\">About</a> <a class=\"nav-cta\" href=\"/#contact\">Start a conversation ↗</a></nav></header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -142,7 +142,7 @@ func PageHead(title string) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 63, Col: 16}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 64, Col: 16}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -229,7 +229,7 @@ func LoginPage(data LoginData) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(data.Account.CSRFToken)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 93, Col: 75}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 94, Col: 75}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -242,7 +242,7 @@ func LoginPage(data LoginData) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(data.Next)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 94, Col: 56}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 95, Col: 56}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -255,7 +255,7 @@ func LoginPage(data LoginData) templ.Component {
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(data.Username)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 95, Col: 123}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 96, Col: 123}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -273,7 +273,7 @@ func LoginPage(data LoginData) templ.Component {
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(data.Error)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 98, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 99, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -344,7 +344,7 @@ func UserProfilePage(account AccountView) templ.Component {
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(account.DisplayName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 119, Col: 30}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 120, Col: 30}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -357,7 +357,7 @@ func UserProfilePage(account AccountView) templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(account.Status)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 120, Col: 70}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 121, Col: 70}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
@@ -370,7 +370,7 @@ func UserProfilePage(account AccountView) templ.Component {
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(account.Username)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 122, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 123, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
@@ -383,7 +383,7 @@ func UserProfilePage(account AccountView) templ.Component {
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(account.Role)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 123, Col: 42}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 124, Col: 42}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 		if templ_7745c5c3_Err != nil {
@@ -449,7 +449,7 @@ func ClientLandingPage(account AccountView) templ.Component {
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(account.Status)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 143, Col: 70}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 144, Col: 70}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
@@ -515,7 +515,7 @@ func AdminLandingPage(account AccountView) templ.Component {
 		var templ_7745c5c3_Var20 string
 		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(account.Status)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 163, Col: 70}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/auth.templ`, Line: 164, Col: 70}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 		if templ_7745c5c3_Err != nil {

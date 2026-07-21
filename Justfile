@@ -62,11 +62,12 @@ check:
     trap 'rm -rf "$before"' EXIT
     {{ templ }} fmt .
     gofmt -w cmd internal
+    rm -f internal/templates/*_templ.go
     {{ templ }} generate
-    cp internal/templates/page_templ.go internal/templates/auth_templ.go "$before/"
+    cp internal/templates/*_templ.go "$before/"
+    rm -f internal/templates/*_templ.go
     {{ templ }} generate
-    cmp "$before/page_templ.go" internal/templates/page_templ.go
-    cmp "$before/auth_templ.go" internal/templates/auth_templ.go
+    for f in internal/templates/*_templ.go; do cmp "$before/$(basename "$f")" "$f"; done
     go test -race ./...
     go vet ./...
     mkdir -p bin

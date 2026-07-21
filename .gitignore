@@ -1,4 +1,4 @@
 .render/
 .env
-/bin/
-/data/*.db*
+bin/
+data/*.db*
