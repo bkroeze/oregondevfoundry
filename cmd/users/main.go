@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/bkroeze/oregon-dev-foundry/internal/auth"
+	"github.com/bkroeze/oregon-dev-foundry/internal/commerce"
 )
 
 func main() {
@@ -71,6 +72,7 @@ func createUser(args []string, stdin io.Reader, stdout io.Writer) error {
 	fs := newFlagSet("create")
 	database := databaseFlag(fs)
 	username := fs.String("username", "", "unique login username")
+	email := fs.String("email", "", "optional account email")
 	displayName := fs.String("display-name", "", "account display name")
 	role := fs.String("role", string(auth.RoleUser), "user, client, or admin")
 	hasPurchases := fs.Bool("has-purchases", false, "status-model purchase marker")
@@ -97,7 +99,7 @@ func createUser(args []string, stdin io.Reader, stdout io.Writer) error {
 	defer closeStore()
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	user, err := store.CreateUser(ctx, auth.CreateUserParams{Username: *username, DisplayName: *displayName, Role: auth.Role(*role), HasPurchases: *hasPurchases, Password: password})
+	user, err := store.CreateUser(ctx, auth.CreateUserParams{Username: *username, Email: *email, DisplayName: *displayName, Role: auth.Role(*role), HasPurchases: *hasPurchases, Password: password})
 	if err != nil {
 		return err
 	}
@@ -131,9 +133,9 @@ func listUsers(args []string, stdout io.Writer) error {
 		fmt.Fprintln(stdout, "help[1]: \"Pipe a password to `just users create <username> \\\"<name>\\\" user false` to create a user\"")
 		return nil
 	}
-	fmt.Fprintf(stdout, "users[%d]{id,username,role,status}:\n", len(users))
+	fmt.Fprintf(stdout, "users[%d]{id,username,email,role,status}:\n", len(users))
 	for _, user := range users {
-		fmt.Fprintf(stdout, "  %d,%s,%s,%s\n", user.ID, toonString(user.Username), toonString(string(user.Role)), toonString(string(user.CustomerStatus())))
+		fmt.Fprintf(stdout, "  %d,%s,%s,%s,%s\n", user.ID, toonString(user.Username), toonString(user.Email), toonString(string(user.Role)), toonString(string(user.CustomerStatus())))
 	}
 	fmt.Fprintln(stdout, "help[1]: \"Run `just users show <username>` for account details\"")
 	return nil
@@ -169,6 +171,7 @@ func updateUser(args []string, stdin io.Reader, stdout io.Writer) error {
 	database := databaseFlag(fs)
 	username := fs.String("username", "", "current login username")
 	newUsername := fs.String("new-username", "", "replacement login username")
+	email := fs.String("email", "", "replacement account email; pass an empty value to clear")
 	displayName := fs.String("display-name", "", "replacement display name")
 	role := fs.String("role", "", "replacement role")
 	hasPurchases := fs.Bool("has-purchases", false, "set the status-model purchase marker")
@@ -180,8 +183,8 @@ func updateUser(args []string, stdin io.Reader, stdout io.Writer) error {
 		return usageError{"--username is required and positional arguments are not accepted", "Run `go run ./cmd/users update --help` for flags"}
 	}
 	set := visitedFlags(fs)
-	if !set["new-username"] && !set["display-name"] && !set["role"] && !set["has-purchases"] && !set["password-stdin"] {
-		return usageError{"at least one update flag is required", "Set --new-username, --display-name, --role, --has-purchases, or --password-stdin"}
+	if !set["new-username"] && !set["email"] && !set["display-name"] && !set["role"] && !set["has-purchases"] && !set["password-stdin"] {
+		return usageError{"at least one update flag is required", "Set --new-username, --email, --display-name, --role, --has-purchases, or --password-stdin"}
 	}
 
 	store, closeStore, err := openStore(*database)
@@ -195,9 +198,12 @@ func updateUser(args []string, stdin io.Reader, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-	params := auth.UpdateUserParams{Username: current.Username, DisplayName: current.DisplayName, Role: current.Role, HasPurchases: current.HasPurchases, ExpectedVersion: current.Version}
+	params := auth.UpdateUserParams{Username: current.Username, Email: current.Email, DisplayName: current.DisplayName, Role: current.Role, HasPurchases: current.HasPurchases, ProtectAdminPassword: false, ExpectedVersion: current.Version}
 	if set["new-username"] {
 		params.Username = *newUsername
+	}
+	if set["email"] {
+		params.Email = *email
 	}
 	if set["display-name"] {
 		params.DisplayName = *displayName
@@ -245,7 +251,18 @@ func deleteUser(args []string, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-	if err := store.DeleteUser(ctx, user.ID); err != nil {
+	commerceStore, err := commerce.New(store.DB())
+	if err != nil {
+		return fmt.Errorf("initialize commerce records: %w", err)
+	}
+	targets, err := commerceStore.CancellationTargetsForUser(ctx, user.ID)
+	if err != nil {
+		return err
+	}
+	if len(targets.CheckoutSessionIDs) != 0 || len(targets.SubscriptionIDs) != 0 {
+		return errors.New("user has active Stripe checkout or subscription records; cancel them through the account deletion workflow")
+	}
+	if err := commerceStore.FinalizeUserDeletion(ctx, user.ID); err != nil {
 		return err
 	}
 	fmt.Fprintln(stdout, "deleted:")
@@ -299,6 +316,7 @@ func writeUser(writer io.Writer, label string, user auth.User) {
 	fmt.Fprintf(writer, "%s:\n", label)
 	fmt.Fprintf(writer, "  id: %d\n", user.ID)
 	fmt.Fprintf(writer, "  username: %s\n", toonString(user.Username))
+	fmt.Fprintf(writer, "  email: %s\n", toonString(user.Email))
 	fmt.Fprintf(writer, "  displayName: %s\n", toonString(user.DisplayName))
 	fmt.Fprintf(writer, "  role: %s\n", toonString(string(user.Role)))
 	fmt.Fprintf(writer, "  status: %s\n", toonString(string(user.CustomerStatus())))
@@ -318,6 +336,8 @@ func publicError(err error) string {
 		return "user not found"
 	case errors.Is(err, auth.ErrUsernameExists):
 		return "username already exists"
+	case errors.Is(err, auth.ErrEmailExists):
+		return "email already exists"
 	case errors.Is(err, auth.ErrConcurrentUpdate):
 		return "user changed during update; reload it and retry"
 	default:
@@ -346,13 +366,13 @@ func printCommandHelp(writer io.Writer, command string) {
 	fmt.Fprintf(writer, "command: %s\n", toonString(command))
 	switch command {
 	case "create":
-		fmt.Fprintln(writer, "usage: \"go run ./cmd/users create --username <username> --display-name \\\"<name>\\\" [--role user|client|admin] [--has-purchases] --password-stdin\"")
+		fmt.Fprintln(writer, "usage: \"go run ./cmd/users create --username <username> [--email <email>] --display-name \\\"<name>\\\" [--role user|client|admin] [--has-purchases] --password-stdin\"")
 	case "list":
 		fmt.Fprintln(writer, "usage: \"go run ./cmd/users list [--database <path>]\"")
 	case "show":
 		fmt.Fprintln(writer, "usage: \"go run ./cmd/users show --username <username> [--database <path>]\"")
 	case "update":
-		fmt.Fprintln(writer, "usage: \"go run ./cmd/users update --username <username> [--new-username <username>] [--display-name \\\"<name>\\\"] [--role user|client|admin] [--has-purchases=true|false] [--password-stdin]\"")
+		fmt.Fprintln(writer, "usage: \"go run ./cmd/users update --username <username> [--new-username <username>] [--email <email>] [--display-name \\\"<name>\\\"] [--role user|client|admin] [--has-purchases=true|false] [--password-stdin]\"")
 	case "delete":
 		fmt.Fprintln(writer, "usage: \"go run ./cmd/users delete --username <username> --confirm <username> [--database <path>]\"")
 	default:

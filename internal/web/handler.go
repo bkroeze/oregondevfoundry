@@ -17,8 +17,11 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/bkroeze/oregon-dev-foundry/internal/auth"
+	"github.com/bkroeze/oregon-dev-foundry/internal/commerce"
 	"github.com/bkroeze/oregon-dev-foundry/internal/config"
 	"github.com/bkroeze/oregon-dev-foundry/internal/contact"
+	"github.com/bkroeze/oregon-dev-foundry/internal/notifications"
+	"github.com/bkroeze/oregon-dev-foundry/internal/payment"
 	"github.com/bkroeze/oregon-dev-foundry/internal/templates"
 )
 
@@ -37,11 +40,30 @@ type Handler struct {
 	sender       contact.Sender
 	verifier     contact.Verifier
 	users        *auth.Store
+	commerce     *commerce.Store
+	payments     payment.Gateway
+	mailer       notifications.Mailer
 	loginLimiter *loginLimiter
 }
 
 func NewHandler(cfg config.Config, sender contact.Sender, verifier contact.Verifier, users *auth.Store) http.Handler {
-	h := Handler{config: cfg, sender: sender, verifier: verifier, users: users, loginLimiter: newLoginLimiter(4)}
+	store, err := commerce.New(users.DB())
+	if err != nil {
+		slog.Error("initialize commerce store", "error", err)
+		return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			http.Error(w, "application database is unavailable", http.StatusInternalServerError)
+		})
+	}
+	var gateway payment.Gateway
+	if cfg.StripeSecretKey != "" {
+		gateway = payment.NewStripeGateway(cfg.StripeSecretKey, cfg.StripeWebhookSecret)
+	}
+	mailer := notifications.NewMailgunMailer(cfg.MailgunDomain, cfg.MailgunAPIKey, cfg.MailgunRegion, cfg.OrderFrom)
+	return NewHandlerWithCommerce(cfg, sender, verifier, users, store, gateway, mailer)
+}
+
+func NewHandlerWithCommerce(cfg config.Config, sender contact.Sender, verifier contact.Verifier, users *auth.Store, store *commerce.Store, gateway payment.Gateway, mailer notifications.Mailer) http.Handler {
+	h := Handler{config: cfg, sender: sender, verifier: verifier, users: users, commerce: store, payments: gateway, mailer: mailer, loginLimiter: newLoginLimiter(4)}
 	static, _ := fs.Sub(assets, "static")
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", health)
@@ -52,15 +74,49 @@ func NewHandler(cfg config.Config, sender contact.Sender, verifier contact.Verif
 	mux.Handle("GET /script.js", cache(http.FileServer(http.FS(static))))
 	mux.HandleFunc("GET /services", h.servicesPage)
 	mux.HandleFunc("GET /shop/vending-signage", h.vendingSignagePage)
+	mux.HandleFunc("GET /shop/blocks/{key}", h.productBlock)
+	mux.HandleFunc("GET /shop/{slug}", h.productPage)
+	mux.HandleFunc("GET /cart", h.cartPage)
+	mux.HandleFunc("POST /cart/items", h.addCartItem)
+	mux.HandleFunc("POST /cart/items/update", h.updateCartItem)
+	mux.HandleFunc("POST /cart/items/remove", h.removeCartItem)
+	mux.HandleFunc("POST /checkout", h.checkoutCart)
+	mux.HandleFunc("POST /subscriptions/checkout", h.checkoutSubscription)
+	mux.HandleFunc("GET /checkout/return", h.checkoutReturn)
+	mux.HandleFunc("POST /stripe/webhook", h.stripeWebhook)
+	mux.HandleFunc("GET /account/invite", h.invitationPage)
+	mux.HandleFunc("POST /account/invite", h.completeInvitation)
 	mux.HandleFunc("GET /services/ai-concierge", h.aiConciergePage)
 	mux.HandleFunc("GET /login", h.loginPage)
 	mux.HandleFunc("POST /login", h.login)
 	mux.HandleFunc("POST /logout", h.logout)
 	mux.HandleFunc("GET /profile", h.userProfile)
+	mux.HandleFunc("GET /profile/password", h.passwordChangePage)
+	mux.HandleFunc("POST /profile/password", h.changePassword)
+	mux.HandleFunc("GET /profile/delete", h.deleteAccountPage)
+	mux.HandleFunc("POST /profile/delete", h.deleteAccount)
 	mux.HandleFunc("GET /client", h.clientProfile)
 	mux.HandleFunc("GET /admin", h.adminLanding)
+	mux.HandleFunc("GET /admin/shop", h.adminProducts)
+	mux.HandleFunc("GET /admin/users", h.adminUsers)
+	mux.HandleFunc("GET /admin/users/new", h.newAdminUser)
+	mux.HandleFunc("POST /admin/users", h.createAdminUser)
+	mux.HandleFunc("GET /admin/users/{id}", h.adminUser)
+	mux.HandleFunc("POST /admin/users/{id}", h.updateAdminUser)
+	mux.HandleFunc("POST /admin/users/{id}/delete", h.deleteAdminUser)
+	mux.HandleFunc("GET /admin/products", h.adminProducts)
+	mux.HandleFunc("GET /admin/products/new", h.newAdminProduct)
+	mux.HandleFunc("POST /admin/products", h.createAdminProduct)
+	mux.HandleFunc("GET /admin/products/{id}", h.adminProduct)
+	mux.HandleFunc("POST /admin/products/{id}", h.updateAdminProduct)
+	mux.HandleFunc("POST /admin/products/{id}/skus", h.createAdminSKU)
+	mux.HandleFunc("POST /admin/products/{id}/skus/{skuID}", h.updateAdminSKU)
+	mux.HandleFunc("POST /admin/products/{id}/skus/{skuID}/delete", h.deleteAdminSKU)
+	mux.HandleFunc("POST /admin/products/{id}/shipping", h.createAdminShipping)
+	mux.HandleFunc("POST /admin/products/{id}/shipping/{shippingID}", h.updateAdminShipping)
+	mux.HandleFunc("POST /admin/products/{id}/shipping/{shippingID}/delete", h.deleteAdminShipping)
 	mux.HandleFunc("GET /", h.page)
-	return securityHeaders(mux)
+	return securityHeaders(h.captureReferral(mux))
 }
 
 func health(w http.ResponseWriter, _ *http.Request) {
@@ -104,7 +160,7 @@ func (h Handler) loginPage(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/profile", http.StatusSeeOther)
 		return
 	}
-	h.renderComponent(w, r, http.StatusOK, templates.LoginPage(templates.LoginData{Account: account, Next: safeNext(r.URL.Query().Get("next"))}))
+	h.renderComponent(w, r, http.StatusOK, templates.LoginPage(templates.LoginData{Account: account, Status: r.URL.Query().Get("status"), Next: safeNext(r.URL.Query().Get("next"))}))
 }
 
 func (h Handler) login(w http.ResponseWriter, r *http.Request) {
@@ -148,6 +204,7 @@ func (h Handler) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.loginLimiter.succeeded(client, username)
+	h.associateCurrentReferral(r, user.ID)
 	token, expires, err := h.users.CreateSession(r.Context(), user.ID)
 	if err != nil {
 		slog.Error("create session", "error", err)

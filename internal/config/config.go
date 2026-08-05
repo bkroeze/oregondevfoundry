@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -12,31 +13,41 @@ import (
 const defaultPort = 8080
 
 type Config struct {
-	Address             string
-	ShutdownTimeout     time.Duration
-	MailgunAPIKey       string
-	MailgunDomain       string
-	MailgunRegion       string
-	ContactTo           string
-	ContactFrom         string
-	TurnstileSiteKey    string
-	TurnstileSecretKey  string
-	DatabasePath        string
-	SessionCookieSecure bool
+	Address              string
+	ShutdownTimeout      time.Duration
+	MailgunAPIKey        string
+	MailgunDomain        string
+	MailgunRegion        string
+	ContactTo            string
+	ContactFrom          string
+	TurnstileSiteKey     string
+	TurnstileSecretKey   string
+	DatabasePath         string
+	SessionCookieSecure  bool
+	StripeSecretKey      string
+	StripePublishableKey string
+	StripeWebhookSecret  string
+	PublicBaseURL        string
+	OrderFrom            string
 }
 
 func Load() (Config, error) {
 	cfg := Config{
-		ShutdownTimeout:     10 * time.Second,
-		MailgunAPIKey:       strings.TrimSpace(os.Getenv("MAILGUN_API_KEY")),
-		MailgunDomain:       strings.TrimSpace(os.Getenv("MAILGUN_DOMAIN")),
-		MailgunRegion:       strings.ToLower(strings.TrimSpace(os.Getenv("MAILGUN_REGION"))),
-		ContactTo:           strings.TrimSpace(os.Getenv("CONTACT_TO")),
-		ContactFrom:         strings.TrimSpace(os.Getenv("CONTACT_FROM")),
-		TurnstileSiteKey:    strings.TrimSpace(os.Getenv("TURNSTILE_SITE_KEY")),
-		TurnstileSecretKey:  strings.TrimSpace(os.Getenv("TURNSTILE_SECRET_KEY")),
-		DatabasePath:        strings.TrimSpace(os.Getenv("DATABASE_PATH")),
-		SessionCookieSecure: true,
+		ShutdownTimeout:      10 * time.Second,
+		MailgunAPIKey:        strings.TrimSpace(os.Getenv("MAILGUN_API_KEY")),
+		MailgunDomain:        strings.TrimSpace(os.Getenv("MAILGUN_DOMAIN")),
+		MailgunRegion:        strings.ToLower(strings.TrimSpace(os.Getenv("MAILGUN_REGION"))),
+		ContactTo:            strings.TrimSpace(os.Getenv("CONTACT_TO")),
+		ContactFrom:          strings.TrimSpace(os.Getenv("CONTACT_FROM")),
+		TurnstileSiteKey:     strings.TrimSpace(os.Getenv("TURNSTILE_SITE_KEY")),
+		TurnstileSecretKey:   strings.TrimSpace(os.Getenv("TURNSTILE_SECRET_KEY")),
+		DatabasePath:         strings.TrimSpace(os.Getenv("DATABASE_PATH")),
+		SessionCookieSecure:  true,
+		StripeSecretKey:      strings.TrimSpace(os.Getenv("STRIPE_SECRET_KEY")),
+		StripePublishableKey: strings.TrimSpace(os.Getenv("STRIPE_PUBLISHABLE_KEY")),
+		StripeWebhookSecret:  strings.TrimSpace(os.Getenv("STRIPE_WEBHOOK_SECRET")),
+		PublicBaseURL:        strings.TrimRight(strings.TrimSpace(os.Getenv("PUBLIC_BASE_URL")), "/"),
+		OrderFrom:            strings.TrimSpace(os.Getenv("ORDER_FROM")),
 	}
 
 	if cfg.DatabasePath == "" {
@@ -65,6 +76,27 @@ func Load() (Config, error) {
 	}
 	if cfg.MailgunRegion != "us" && cfg.MailgunRegion != "eu" {
 		return Config{}, errors.New("MAILGUN_REGION must be either us or eu")
+	}
+
+	if cfg.OrderFrom == "" {
+		cfg.OrderFrom = cfg.ContactFrom
+	}
+	stripeValues := []string{cfg.StripeSecretKey, cfg.StripePublishableKey, cfg.StripeWebhookSecret, cfg.PublicBaseURL}
+	configured := 0
+	for _, value := range stripeValues {
+		if value != "" {
+			configured++
+		}
+	}
+	if configured != 0 && configured != len(stripeValues) {
+		return Config{}, errors.New("STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET, and PUBLIC_BASE_URL must be configured together")
+	}
+	if cfg.PublicBaseURL != "" {
+		baseURL, err := url.Parse(cfg.PublicBaseURL)
+		if err != nil || (baseURL.Scheme != "http" && baseURL.Scheme != "https") || baseURL.Host == "" || baseURL.RawQuery != "" || baseURL.Fragment != "" {
+			return Config{}, errors.New("PUBLIC_BASE_URL must be an absolute http or https URL without a query or fragment")
+		}
+		cfg.PublicBaseURL = strings.TrimRight(baseURL.String(), "/")
 	}
 
 	required := map[string]string{

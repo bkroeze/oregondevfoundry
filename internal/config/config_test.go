@@ -58,3 +58,50 @@ func TestLoadRejectsInvalidCookieSecurity(t *testing.T) {
 		t.Fatalf("expected cookie security error, got %v", err)
 	}
 }
+
+func TestLoadStripeConfiguration(t *testing.T) {
+	for _, name := range []string{"MAILGUN_API_KEY", "MAILGUN_DOMAIN", "CONTACT_TO", "CONTACT_FROM", "TURNSTILE_SITE_KEY", "TURNSTILE_SECRET_KEY"} {
+		t.Setenv(name, "value")
+	}
+	t.Setenv("STRIPE_SECRET_KEY", "sk_test_value")
+	t.Setenv("STRIPE_PUBLISHABLE_KEY", "pk_test_value")
+	t.Setenv("STRIPE_WEBHOOK_SECRET", "whsec_value")
+	t.Setenv("PUBLIC_BASE_URL", "https://example.com/store/")
+	t.Setenv("ORDER_FROM", "")
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.PublicBaseURL != "https://example.com/store" || cfg.OrderFrom != cfg.ContactFrom {
+		t.Fatalf("unexpected Stripe config: %#v", cfg)
+	}
+}
+
+func TestLoadRejectsPartialStripeConfiguration(t *testing.T) {
+	for _, name := range []string{"MAILGUN_API_KEY", "MAILGUN_DOMAIN", "CONTACT_TO", "CONTACT_FROM", "TURNSTILE_SITE_KEY", "TURNSTILE_SECRET_KEY"} {
+		t.Setenv(name, "value")
+	}
+	t.Setenv("STRIPE_SECRET_KEY", "sk_test_value")
+	t.Setenv("STRIPE_PUBLISHABLE_KEY", "")
+	t.Setenv("STRIPE_WEBHOOK_SECRET", "")
+	t.Setenv("PUBLIC_BASE_URL", "")
+
+	if _, err := Load(); err == nil || !strings.Contains(err.Error(), "configured together") {
+		t.Fatalf("expected partial Stripe configuration error, got %v", err)
+	}
+}
+
+func TestLoadRejectsMalformedPublicBaseURL(t *testing.T) {
+	for _, name := range []string{"MAILGUN_API_KEY", "MAILGUN_DOMAIN", "CONTACT_TO", "CONTACT_FROM", "TURNSTILE_SITE_KEY", "TURNSTILE_SECRET_KEY"} {
+		t.Setenv(name, "value")
+	}
+	t.Setenv("STRIPE_SECRET_KEY", "sk_test_value")
+	t.Setenv("STRIPE_PUBLISHABLE_KEY", "pk_test_value")
+	t.Setenv("STRIPE_WEBHOOK_SECRET", "whsec_value")
+	t.Setenv("PUBLIC_BASE_URL", "example.com/store?unsafe=true")
+
+	if _, err := Load(); err == nil || !strings.Contains(err.Error(), "PUBLIC_BASE_URL") {
+		t.Fatalf("expected public URL error, got %v", err)
+	}
+}

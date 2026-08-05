@@ -1,0 +1,997 @@
+package templates
+
+import "strconv"
+
+// Money is display-ready currency text. Amounts submitted by admin forms remain
+// integer cents so formatting never becomes part of the commerce contract.
+type Money string
+
+type OptionView struct {
+	SKU         string
+	Label       string
+	Description string
+	Price       Money
+	PriceCents  int64
+	Selected    bool
+	Disabled    bool
+}
+
+type SKUView struct {
+	ID                string
+	SKU               string
+	Name              string
+	Description       string
+	Kind              string
+	Price             Money
+	PriceCents        int64
+	StripePriceID     string
+	InventoryTracked  bool
+	InventoryQuantity int
+	Available         bool
+	Active            bool
+	UpdateAction      string
+	DeleteAction      string
+}
+
+type ShippingView struct {
+	ID           string
+	Code         string
+	Name         string
+	Price        Money
+	PriceCents   int64
+	SortOrder    int
+	Selected     bool
+	Active       bool
+	UpdateAction string
+	DeleteAction string
+}
+
+type ProductView struct {
+	ID              string
+	Slug            string
+	Name            string
+	Eyebrow         string
+	Summary         string
+	Description     string
+	Type            string
+	Currency        string
+	MasterSKU       string
+	Price           Money
+	PriceCents      int64
+	StripeProductID string
+	Active          bool
+	PrimaryOptions  []OptionView
+	Addons          []OptionView
+	SKUs            []SKUView
+	ShippingOptions []ShippingView
+	EditURL         string
+}
+
+type ProductPageData struct {
+	Account       AccountView
+	Product       ProductView
+	Action        string
+	CSRFToken     string
+	ReferralToken string
+	Name          string
+	Email         string
+	CreateAccount bool
+	Errors        map[string]string
+	Error         string
+	Status        string
+}
+
+type ProductBlockData struct {
+	Product       ProductView
+	Action        string
+	CSRFToken     string
+	ReferralToken string
+	Name          string
+	Email         string
+	CreateAccount bool
+	Errors        map[string]string
+	Error         string
+	Status        string
+}
+
+type CartLineView struct {
+	ID            string
+	ProductName   string
+	SKU           string
+	SKUName       string
+	OptionSummary string
+	Quantity      int
+	UnitPrice     Money
+	LineTotal     Money
+	UpdateAction  string
+	RemoveAction  string
+	QuantityError string
+}
+
+type CartPageData struct {
+	Account             AccountView
+	Lines               []CartLineView
+	Subtotal            Money
+	Shipping            Money
+	Total               Money
+	Name                string
+	Email               string
+	CreateAccount       bool
+	CanCheckout         bool
+	CheckoutAction      string
+	ContinueShoppingURL string
+	CSRFToken           string
+	ReferralToken       string
+	Error               string
+	Errors              map[string]string
+	Status              string
+}
+
+type EmbeddedCheckoutData struct {
+	Account           AccountView
+	PublishableKey    string
+	ClientSecret      string
+	HostedCheckoutURL string
+	Total             Money
+	Email             string
+	Error             string
+	Status            string
+}
+
+type ConfirmationData struct {
+	Account       AccountView
+	OrderNumber   string
+	Email         string
+	Lines         []CartLineView
+	Subtotal      Money
+	Shipping      Money
+	Total         Money
+	Status        string
+	Message       string
+	Error         string
+	InvitationURL string
+}
+
+type InvitationData struct {
+	Account         AccountView
+	Email           string
+	Name            string
+	Username        string
+	Token           string
+	Action          string
+	CSRFToken       string
+	Error           string
+	Errors          map[string]string
+	Status          string
+	AlreadyAccepted bool
+}
+
+type AdminProductsData struct {
+	Account  AccountView
+	Products []ProductView
+	NewURL   string
+	Error    string
+	Status   string
+}
+
+type AdminProductData struct {
+	Account           AccountView
+	Product           ProductView
+	SaveAction        string
+	AddSKUAction      string
+	AddShippingAction string
+	CSRFToken         string
+	Error             string
+	Errors            map[string]string
+	Status            string
+}
+
+func commerceInt(value int64) string {
+	return strconv.FormatInt(value, 10)
+}
+
+func commerceQuantity(value int) string {
+	return strconv.Itoa(value)
+}
+
+templ CommerceNotice(status string, err string) {
+	if err != "" {
+		<p class="commerce-notice commerce-notice-error" role="alert" tabindex="-1" data-commerce-error>{ err }</p>
+	} else if status != "" {
+		<p class="commerce-notice" role="status">{ status }</p>
+	}
+}
+
+templ CommerceFieldError(id string, message string) {
+	if message != "" {
+		<span class="commerce-field-error" id={ id }>{ message }</span>
+	}
+}
+
+templ ProductPage(data ProductPageData) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@PageHead(data.Product.Name)
+		<body>
+			<a class="skip-link" href="#main">Skip to content</a>
+			@SiteHeader(data.Account)
+			<main id="main" class="commerce-main">
+				<section class="commerce-product-page section-pad" aria-labelledby={ "product-" + data.Product.Slug + "-title" }>
+					@ProductBlock(ProductBlockData{
+						Product:       data.Product,
+						Action:        data.Action,
+						CSRFToken:     data.CSRFToken,
+						ReferralToken: data.ReferralToken,
+						Name:          data.Name,
+						Email:         data.Email,
+						CreateAccount: data.CreateAccount,
+						Errors:        data.Errors,
+						Error:         data.Error,
+						Status:        data.Status,
+					})
+				</section>
+			</main>
+			@PageFooter()
+		</body>
+	</html>
+}
+
+templ ProductBlock(data ProductBlockData) {
+	<article class="commerce-product" data-commerce-product>
+		<header class="commerce-product-copy">
+			if data.Product.Eyebrow != "" {
+				<p class="kicker">{ data.Product.Eyebrow }</p>
+			}
+			<h2 id={ "product-" + data.Product.Slug + "-title" }>{ data.Product.Name }</h2>
+			if data.Product.Summary != "" {
+				<p class="commerce-product-summary">{ data.Product.Summary }</p>
+			}
+			if data.Product.Description != "" {
+				<p class="commerce-product-description">{ data.Product.Description }</p>
+			}
+			<p class="commerce-product-price">
+				<span>{ data.Product.Price }</span>
+				if data.Product.Type == "subscription" {
+					<small>per month</small>
+				}
+			</p>
+		</header>
+		<div class="commerce-purchase-panel">
+			@CommerceNotice(data.Status, data.Error)
+			if data.Product.Type == "subscription" {
+				<form class="commerce-purchase-form" action={ data.Action } method="post" data-price-form data-base-price-cents={ commerceInt(data.Product.PriceCents) } data-currency={ data.Product.Currency }>
+					<input type="hidden" name="csrf_token" value={ data.CSRFToken }/>
+					if data.ReferralToken != "" {
+						<input type="hidden" name="referral_token" value={ data.ReferralToken }/>
+					}
+					if len(data.Product.PrimaryOptions) == 0 {
+						<input type="hidden" name="sku" value={ data.Product.MasterSKU }/>
+					} else {
+						<fieldset class="commerce-option-group">
+							<legend>Monthly plan</legend>
+							<div class="commerce-options">
+								for _, option := range data.Product.PrimaryOptions {
+									<label>
+										<input
+											type="radio"
+											name="sku"
+											value={ option.SKU }
+											required
+											data-price-cents={ commerceInt(option.PriceCents) }
+											data-price-mode="replace"
+											if option.Selected {
+												checked
+											}
+											if option.Disabled {
+												disabled
+											}
+										/>
+										<span><strong>{ option.Label }</strong><small>{ option.Description }</small></span>
+										<em>{ option.Price } / month</em>
+									</label>
+								}
+							</div>
+						</fieldset>
+					}
+					<div class="commerce-subscription-customer">
+						<div>
+							<label for={ "subscription-" + data.Product.Slug + "-name" }>Name</label>
+							<input
+								id={ "subscription-" + data.Product.Slug + "-name" }
+								name="name"
+								autocomplete="name"
+								maxlength="120"
+								required
+								value={ data.Name }
+								if data.Errors["name"] != "" {
+									aria-invalid="true"
+									aria-describedby={ "subscription-" + data.Product.Slug + "-name-error" }
+								}
+							/>
+							@CommerceFieldError("subscription-"+data.Product.Slug+"-name-error", data.Errors["name"])
+						</div>
+						<div>
+							<label for={ "subscription-" + data.Product.Slug + "-email" }>Email</label>
+							<input
+								id={ "subscription-" + data.Product.Slug + "-email" }
+								name="email"
+								type="email"
+								autocomplete="email"
+								maxlength="254"
+								required
+								value={ data.Email }
+								if data.Errors["email"] != "" {
+									aria-invalid="true"
+									aria-describedby={ "subscription-" + data.Product.Slug + "-email-error" }
+								}
+							/>
+							@CommerceFieldError("subscription-"+data.Product.Slug+"-email-error", data.Errors["email"])
+						</div>
+					</div>
+					<label class="commerce-check-label">
+						<input
+							type="checkbox"
+							name="create_account"
+							value="true"
+							if data.CreateAccount {
+								checked
+							}
+						/><span>Create an account for subscription access. We will email a single-use invitation after purchase.</span>
+					</label>
+					<div class="commerce-purchase-total" aria-live="polite">
+						<span>Monthly total</span>
+						<strong data-product-price>{ data.Product.Price }</strong>
+					</div>
+					<button class="button button-primary" type="submit">Continue to subscription checkout <span>↗</span></button>
+					<p class="commerce-form-note">This purchase renews monthly. The checkout page shows the final recurring amount before payment.</p>
+				</form>
+			} else {
+				<form class="commerce-purchase-form" action={ data.Action } method="post" data-price-form data-base-price-cents={ commerceInt(data.Product.PriceCents) } data-currency={ data.Product.Currency }>
+					<input type="hidden" name="csrf_token" value={ data.CSRFToken }/>
+					if data.ReferralToken != "" {
+						<input type="hidden" name="referral_token" value={ data.ReferralToken }/>
+					}
+					if len(data.Product.PrimaryOptions) == 0 {
+						<input type="hidden" name="sku" value={ data.Product.MasterSKU }/>
+					} else {
+						<fieldset class="commerce-option-group">
+							<legend>Variation</legend>
+							<div class="commerce-options">
+								for _, option := range data.Product.PrimaryOptions {
+									<label>
+										<input
+											type="radio"
+											name="sku"
+											value={ option.SKU }
+											required
+											data-price-cents={ commerceInt(option.PriceCents) }
+											data-price-mode="replace"
+											if option.Selected {
+												checked
+											}
+											if option.Disabled {
+												disabled
+											}
+										/>
+										<span><strong>{ option.Label }</strong><small>{ option.Description }</small></span>
+										<em>{ option.Price }</em>
+									</label>
+								}
+							</div>
+						</fieldset>
+					}
+					if len(data.Product.Addons) > 0 {
+						<fieldset class="commerce-option-group">
+							<legend>Add-ons</legend>
+							<div class="commerce-options">
+								for _, addon := range data.Product.Addons {
+									<label>
+										<input
+											type="checkbox"
+											name="addon_sku"
+											value={ addon.SKU }
+											data-price-cents={ commerceInt(addon.PriceCents) }
+											data-price-mode="add"
+											if addon.Selected {
+												checked
+											}
+											if addon.Disabled {
+												disabled
+											}
+										/>
+										<span><strong>{ addon.Label }</strong><small>{ addon.Description }</small></span>
+										<em>+{ addon.Price }</em>
+									</label>
+								}
+							</div>
+						</fieldset>
+					}
+					if len(data.Product.ShippingOptions) > 0 {
+						<fieldset class="commerce-option-group">
+							<legend>Shipping</legend>
+							<div class="commerce-options">
+								for _, shipping := range data.Product.ShippingOptions {
+									<label>
+										<input
+											type="radio"
+											name="shipping_code"
+											value={ shipping.Code }
+											required
+											data-price-cents={ commerceInt(shipping.PriceCents) }
+											data-price-mode="add"
+											data-price-scope="order"
+											if shipping.Selected {
+												checked
+											}
+											if !shipping.Active {
+												disabled
+											}
+										/>
+										<span><strong>{ shipping.Name }</strong></span>
+										<em>{ shipping.Price }</em>
+									</label>
+								}
+							</div>
+						</fieldset>
+					}
+					<label class="commerce-quantity">Quantity<input type="number" name="quantity" value="1" min="1" max="99" inputmode="numeric" required/></label>
+					<div class="commerce-purchase-total" aria-live="polite">
+						<span>Item total</span>
+						<strong data-product-price>{ data.Product.Price }</strong>
+					</div>
+					<button class="button button-primary" type="submit">Add to cart <span>↗</span></button>
+					<p class="commerce-form-note">Options are saved with the cart item. You can review quantities before checkout.</p>
+				</form>
+			}
+		</div>
+	</article>
+}
+
+templ CartPage(data CartPageData) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@PageHead("Cart")
+		<body>
+			<a class="skip-link" href="#main">Skip to content</a>
+			@SiteHeader(data.Account)
+			<main id="main" class="commerce-main">
+				<section class="commerce-page section-pad" aria-labelledby="cart-title">
+					<header class="commerce-page-heading">
+						<p class="kicker">Commerce / Cart</p>
+						<h1 id="cart-title">Review your cart</h1>
+						<p>Update quantities, remove items, or continue to the payment step.</p>
+					</header>
+					@CommerceNotice(data.Status, data.Error)
+					if len(data.Lines) == 0 {
+						<div class="commerce-empty">
+							<h2>Your cart is empty.</h2>
+							<p>Choose a product to start an order. Nothing has been reserved or charged.</p>
+							if data.ContinueShoppingURL != "" {
+								<a class="button button-primary" href={ data.ContinueShoppingURL }>Continue shopping <span>↗</span></a>
+							}
+						</div>
+					} else {
+						<div class="cart-layout">
+							<div class="cart-lines" aria-label="Cart items">
+								for _, line := range data.Lines {
+									<article class="cart-line">
+										<div class="cart-line-copy">
+											<h2>{ line.ProductName }</h2>
+											<p>{ line.SKUName }</p>
+											if line.OptionSummary != "" {
+												<small>{ line.OptionSummary }</small>
+											}
+											<code>{ line.SKU }</code>
+										</div>
+										<p class="cart-line-price"><span>{ line.UnitPrice } each</span><strong>{ line.LineTotal }</strong></p>
+										<div class="cart-line-actions">
+											<form action={ line.UpdateAction } method="post">
+												<input type="hidden" name="csrf_token" value={ data.CSRFToken }/>
+												<input type="hidden" name="line_id" value={ line.ID }/>
+												<label>
+													Quantity<input
+	type="number"
+	name="quantity"
+	value={ commerceQuantity(line.Quantity) }
+	min="1"
+	max="99"
+	inputmode="numeric"
+	required
+	if line.QuantityError != "" {
+		aria-invalid="true"
+		aria-describedby={ "line-" + line.ID + "-error" }
+	}
+/>
+												</label>
+												@CommerceFieldError("line-"+line.ID+"-error", line.QuantityError)
+												<button class="commerce-text-button" type="submit">Update quantity</button>
+											</form>
+											<form action={ line.RemoveAction } method="post">
+												<input type="hidden" name="csrf_token" value={ data.CSRFToken }/>
+												<input type="hidden" name="line_id" value={ line.ID }/>
+												<button class="commerce-text-button commerce-remove-button" type="submit">Remove</button>
+											</form>
+										</div>
+									</article>
+								}
+							</div>
+							<aside class="cart-checkout" aria-labelledby="checkout-details-title">
+								<h2 id="checkout-details-title">Checkout details</h2>
+								<dl class="commerce-totals">
+									<div><dt>Subtotal</dt><dd>{ data.Subtotal }</dd></div>
+									<div><dt>Shipping</dt><dd>{ data.Shipping }</dd></div>
+									<div class="commerce-total"><dt>Total</dt><dd>{ data.Total }</dd></div>
+								</dl>
+								<form class="commerce-customer-form" action={ data.CheckoutAction } method="post">
+									<input type="hidden" name="csrf_token" value={ data.CSRFToken }/>
+									if data.ReferralToken != "" {
+										<input type="hidden" name="referral_token" value={ data.ReferralToken }/>
+									}
+									<label for="checkout-name">Name</label>
+									<input
+										id="checkout-name"
+										name="name"
+										autocomplete="name"
+										maxlength="120"
+										required
+										value={ data.Name }
+										if data.Errors["name"] != "" {
+											aria-invalid="true"
+											aria-describedby="checkout-name-error"
+										}
+									/>
+									@CommerceFieldError("checkout-name-error", data.Errors["name"])
+									<label for="checkout-email">Email</label>
+									<input
+										id="checkout-email"
+										name="email"
+										type="email"
+										autocomplete="email"
+										maxlength="254"
+										required
+										value={ data.Email }
+										if data.Errors["email"] != "" {
+											aria-invalid="true"
+											aria-describedby="checkout-email-error"
+										}
+									/>
+									@CommerceFieldError("checkout-email-error", data.Errors["email"])
+									<label class="commerce-check-label">
+										<input
+											type="checkbox"
+											name="create_account"
+											value="true"
+											if data.CreateAccount {
+												checked
+											}
+										/><span>Create an account for order access. We will email a single-use invitation after purchase.</span>
+									</label>
+									<button
+										class="button button-primary"
+										type="submit"
+										if !data.CanCheckout {
+											disabled
+										}
+									>Continue to payment <span>↗</span></button>
+									<p class="commerce-form-note">Payment and the final order total are shown on the next page.</p>
+								</form>
+							</aside>
+						</div>
+					}
+				</section>
+			</main>
+			@PageFooter()
+		</body>
+	</html>
+}
+
+templ EmbeddedCheckoutPage(data EmbeddedCheckoutData) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@PageHead("Secure checkout")
+		<body>
+			<a class="skip-link" href="#main">Skip to content</a>
+			@SiteHeader(data.Account)
+			<main id="main" class="commerce-main">
+				<section class="commerce-page section-pad" aria-labelledby="embedded-checkout-title">
+					<header class="commerce-page-heading commerce-page-heading-compact">
+						<p class="kicker">Commerce / Secure payment</p>
+						<h1 id="embedded-checkout-title">Complete checkout</h1>
+						if data.Total != "" {
+							<p>Order total: <strong>{ data.Total }</strong></p>
+						} else {
+							<p>Review payment details before placing the order.</p>
+						}
+					</header>
+					@CommerceNotice(data.Status, data.Error)
+					if data.Error == "" {
+						<div class="embedded-checkout-shell">
+							<p class="commerce-form-note" id="stripe-checkout-status" role="status" aria-live="polite">Loading secure payment form…</p>
+							<div id="embedded-checkout" data-stripe-checkout data-publishable-key={ data.PublishableKey } data-client-secret={ data.ClientSecret } aria-describedby="stripe-checkout-status"></div>
+							<noscript>
+								<div class="commerce-notice commerce-notice-error">
+									JavaScript is required for the embedded payment form.
+									if data.HostedCheckoutURL != "" {
+										<a href={ data.HostedCheckoutURL }>Open the secure hosted checkout instead.</a>
+									}
+								</div>
+							</noscript>
+						</div>
+					}
+				</section>
+			</main>
+			<script src="https://js.stripe.com/v3/"></script>
+			@PageFooter()
+		</body>
+	</html>
+}
+
+templ ConfirmationPage(data ConfirmationData) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@PageHead("Order confirmation")
+		<body>
+			<a class="skip-link" href="#main">Skip to content</a>
+			@SiteHeader(data.Account)
+			<main id="main" class="commerce-main">
+				<section class="commerce-page section-pad" aria-labelledby="confirmation-title">
+					<header class="commerce-page-heading commerce-page-heading-compact">
+						<p class="kicker">Commerce / Confirmation</p>
+						<h1 id="confirmation-title">Order received</h1>
+						if data.Message != "" {
+							<p>{ data.Message }</p>
+						} else {
+							<p>A receipt and any next steps will be sent to { data.Email }.</p>
+						}
+					</header>
+					@CommerceNotice(data.Status, data.Error)
+					if data.OrderNumber != "" {
+						<div class="confirmation-layout">
+							<section class="confirmation-summary" aria-labelledby="order-summary-title">
+								<h2 id="order-summary-title">Order { data.OrderNumber }</h2>
+								<ul class="confirmation-lines">
+									for _, line := range data.Lines {
+										<li><span>{ line.ProductName } × { commerceQuantity(line.Quantity) }<small>{ line.SKUName }</small></span><strong>{ line.LineTotal }</strong></li>
+									}
+								</ul>
+								<dl class="commerce-totals">
+									<div><dt>Subtotal</dt><dd>{ data.Subtotal }</dd></div>
+									<div><dt>Shipping</dt><dd>{ data.Shipping }</dd></div>
+									<div class="commerce-total"><dt>Total</dt><dd>{ data.Total }</dd></div>
+								</dl>
+							</section>
+							<aside class="confirmation-next">
+								<h2>What happens next</h2>
+								<p>Keep the order number for reference. Fulfillment updates will go to { data.Email }.</p>
+								if data.InvitationURL != "" {
+									<a class="button button-primary" href={ data.InvitationURL }>Activate your account <span>↗</span></a>
+								}
+							</aside>
+						</div>
+					}
+				</section>
+			</main>
+			@PageFooter()
+		</body>
+	</html>
+}
+
+templ InvitationPage(data InvitationData) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@PageHead("Activate account")
+		<body>
+			<a class="skip-link" href="#main">Skip to content</a>
+			@SiteHeader(data.Account)
+			<main id="main" class="commerce-main">
+				<section class="commerce-page section-pad" aria-labelledby="invitation-title">
+					<div class="invitation-panel">
+						<p class="kicker">Account / Purchase invitation</p>
+						<h1 id="invitation-title">Activate your account</h1>
+						@CommerceNotice(data.Status, data.Error)
+						if data.AlreadyAccepted {
+							<p class="commerce-product-summary">This invitation has already been used. Log in with the account you activated.</p>
+							<a class="button button-primary" href="/login">Log in <span>↗</span></a>
+						} else {
+							<p class="commerce-product-summary">Set a username and password for { data.Email }. This invitation can be used once.</p>
+							<form class="commerce-customer-form" action={ data.Action } method="post">
+								<input type="hidden" name="csrf_token" value={ data.CSRFToken }/>
+								<input type="hidden" name="invitation_token" value={ data.Token }/>
+								<label for="invitation-name">Name</label>
+								<input
+									id="invitation-name"
+									name="name"
+									autocomplete="name"
+									maxlength="120"
+									required
+									value={ data.Name }
+									if data.Errors["name"] != "" {
+										aria-invalid="true"
+										aria-describedby="invitation-name-error"
+									}
+								/>
+								@CommerceFieldError("invitation-name-error", data.Errors["name"])
+								<label for="invitation-username">Username</label>
+								<input
+									id="invitation-username"
+									name="username"
+									autocomplete="username"
+									maxlength="64"
+									required
+									value={ data.Username }
+									if data.Errors["username"] != "" {
+										aria-invalid="true"
+										aria-describedby="invitation-username-error"
+									}
+								/>
+								@CommerceFieldError("invitation-username-error", data.Errors["username"])
+								<label for="invitation-password">Password</label>
+								<input
+									id="invitation-password"
+									name="password"
+									type="password"
+									autocomplete="new-password"
+									minlength="12"
+									maxlength="72"
+									required
+									if data.Errors["password"] != "" {
+										aria-invalid="true"
+										aria-describedby="invitation-password-error"
+									}
+								/>
+								@CommerceFieldError("invitation-password-error", data.Errors["password"])
+								<label for="invitation-password-confirmation">Confirm password</label>
+								<input
+									id="invitation-password-confirmation"
+									name="password_confirmation"
+									type="password"
+									autocomplete="new-password"
+									minlength="12"
+									maxlength="72"
+									required
+									if data.Errors["password_confirmation"] != "" {
+										aria-invalid="true"
+										aria-describedby="invitation-password-confirmation-error"
+									}
+								/>
+								@CommerceFieldError("invitation-password-confirmation-error", data.Errors["password_confirmation"])
+								<button class="button button-primary" type="submit">Activate account <span>↗</span></button>
+							</form>
+						}
+					</div>
+				</section>
+			</main>
+			@PageFooter()
+		</body>
+	</html>
+}
+
+templ AdminProductsPage(data AdminProductsData) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@PageHead("Products · Admin")
+		<body>
+			<a class="skip-link" href="#main">Skip to content</a>
+			@SiteHeader(data.Account)
+			<main id="main" class="commerce-main">
+				<section class="commerce-page section-pad" aria-labelledby="admin-products-title">
+					<header class="commerce-page-heading commerce-admin-heading">
+						<div><p class="kicker">Administration / Commerce</p><h1 id="admin-products-title">Products</h1></div>
+						if data.NewURL != "" {
+							<a class="button button-primary" href={ data.NewURL }>New product <span>↗</span></a>
+						}
+					</header>
+					@CommerceNotice(data.Status, data.Error)
+					if len(data.Products) == 0 {
+						<div class="commerce-empty"><h2>No products yet.</h2><p>Create a product, then add its purchasable SKUs and any fixed shipping options.</p></div>
+					} else {
+						<div class="admin-product-table" role="region" aria-label="Products" tabindex="0">
+							<table>
+								<thead><tr><th scope="col">Product</th><th scope="col">Type</th><th scope="col">Master SKU</th><th scope="col">Price</th><th scope="col">State</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead>
+								<tbody>
+									for _, product := range data.Products {
+										<tr>
+											<th scope="row"><strong>{ product.Name }</strong><small>/{ product.Slug }</small></th>
+											<td>{ product.Type }</td>
+											<td><code>{ product.MasterSKU }</code></td>
+											<td>{ product.Price }</td>
+											<td>
+												if product.Active {
+													<span class="commerce-state" data-active="true">Active</span>
+												} else {
+													<span class="commerce-state" data-active="false">Draft</span>
+												}
+											</td>
+											<td><a class="commerce-text-link" href={ product.EditURL }>Edit</a></td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+					}
+				</section>
+			</main>
+			@PageFooter()
+		</body>
+	</html>
+}
+
+templ AdminProductPage(data AdminProductData) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@PageHead("Edit product · Admin")
+		<body>
+			<a class="skip-link" href="#main">Skip to content</a>
+			@SiteHeader(data.Account)
+			<main id="main" class="commerce-main">
+				<section class="commerce-page section-pad" aria-labelledby="admin-product-title">
+					<header class="commerce-page-heading commerce-page-heading-compact">
+						<p class="kicker">Administration / Product</p>
+						<h1 id="admin-product-title">{ data.Product.Name }</h1>
+						<p>Manage the product record, purchasable SKUs, add-ons, and fixed shipping prices.</p>
+					</header>
+					@CommerceNotice(data.Status, data.Error)
+					<div class="admin-commerce-stack">
+						<section class="admin-commerce-section" aria-labelledby="product-fields-title">
+							<h2 id="product-fields-title">Product fields</h2>
+							<form class="admin-commerce-form" action={ data.SaveAction } method="post">
+								<input type="hidden" name="csrf_token" value={ data.CSRFToken }/>
+								<div class="admin-form-grid">
+									<label>Name<input name="name" maxlength="160" required value={ data.Product.Name }/></label>
+									<label>URL slug<input name="slug" maxlength="120" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" required value={ data.Product.Slug }/></label>
+									<label>
+										Product type
+										<select name="type" required>
+											<option
+												value="one_time"
+												if data.Product.Type == "one_time" {
+													selected
+												}
+											>One-time</option>
+											<option
+												value="subscription"
+												if data.Product.Type == "subscription" {
+													selected
+												}
+											>Monthly subscription</option>
+										</select>
+									</label>
+									<label>Master SKU<input name="master_sku" maxlength="80" required value={ data.Product.MasterSKU }/></label>
+									<label class="admin-form-wide">Description <span>(optional)</span><textarea name="description" rows="6" maxlength="5000">{ data.Product.Description }</textarea></label>
+								</div>
+								<label class="commerce-check-label">
+									<input
+										type="checkbox"
+										name="active"
+										value="true"
+										if data.Product.Active {
+											checked
+										}
+									/><span>Product is available for purchase</span>
+								</label>
+								<button class="button button-primary" type="submit">Save product <span>↗</span></button>
+							</form>
+						</section>
+						if data.Product.ID != "" {
+							<section class="admin-commerce-section" aria-labelledby="sku-fields-title">
+								<div class="admin-section-heading"><div><h2 id="sku-fields-title">SKUs and add-ons</h2><p>Primary SKUs are variations. Add-on SKUs can only be attached to one-time purchases.</p></div></div>
+								<div class="admin-record-list">
+									for _, sku := range data.Product.SKUs {
+										<article class="admin-record">
+											<form class="admin-commerce-form" action={ sku.UpdateAction } method="post">
+												<input type="hidden" name="csrf_token" value={ data.CSRFToken }/><input type="hidden" name="sku_id" value={ sku.ID }/>
+												<div class="admin-form-grid admin-form-grid-dense">
+													<label>Name<input name="name" maxlength="160" required value={ sku.Name }/></label>
+													<label>SKU<input name="sku" maxlength="80" required value={ sku.SKU }/></label>
+													<label>
+														Kind
+														<select name="kind" required>
+															<option
+																value="primary"
+																if sku.Kind == "primary" {
+																	selected
+																}
+															>Primary</option><option
+	value="addon"
+	if sku.Kind == "addon" {
+		selected
+	}
+>Add-on</option>
+														</select>
+													</label>
+													<label>Price in cents<input name="price_cents" type="number" min="0" step="1" inputmode="numeric" required value={ commerceInt(sku.PriceCents) }/></label>
+													<label>Stripe price ID <span>(optional)</span><input name="stripe_price_id" maxlength="120" value={ sku.StripePriceID }/></label>
+													<label>Inventory quantity<input name="inventory_quantity" type="number" min="0" step="1" inputmode="numeric" value={ commerceQuantity(sku.InventoryQuantity) }/></label>
+													<label class="admin-form-wide">Option data (JSON) <span>(optional)</span><input name="options_json" maxlength="2000" value={ sku.Description }/></label>
+												</div>
+												<div class="admin-check-row">
+													<label class="commerce-check-label">
+														<input
+															type="checkbox"
+															name="inventory_tracked"
+															value="true"
+															if sku.InventoryTracked {
+																checked
+															}
+														/><span>Track inventory</span>
+													</label>
+													<label class="commerce-check-label">
+														<input
+															type="checkbox"
+															name="active"
+															value="true"
+															if sku.Active {
+																checked
+															}
+														/><span>Active</span>
+													</label>
+												</div>
+												<button class="commerce-text-button" type="submit">Save SKU</button>
+											</form>
+											<form action={ sku.DeleteAction } method="post"><input type="hidden" name="csrf_token" value={ data.CSRFToken }/><input type="hidden" name="sku_id" value={ sku.ID }/><button class="commerce-text-button commerce-remove-button" type="submit">Delete SKU</button></form>
+										</article>
+									}
+								</div>
+								<form class="admin-commerce-form admin-add-form" action={ data.AddSKUAction } method="post">
+									<input type="hidden" name="csrf_token" value={ data.CSRFToken }/>
+									<h3>Add SKU</h3>
+									<div class="admin-form-grid admin-form-grid-dense">
+										<label>Name<input name="name" maxlength="160" required/></label><label>SKU<input name="sku" maxlength="80" required/></label>
+										<label>Kind<select name="kind" required><option value="primary">Primary</option><option value="addon">Add-on</option></select></label>
+										<label>Price in cents<input name="price_cents" type="number" min="0" step="1" inputmode="numeric" required/></label>
+										<label>Stripe price ID <span>(optional)</span><input name="stripe_price_id" maxlength="120"/></label>
+										<label>Inventory quantity <span>(optional)</span><input name="inventory_quantity" type="number" min="0" step="1" inputmode="numeric"/></label>
+										<label class="admin-form-wide">Option data (JSON) <span>(optional)</span><input name="options_json" maxlength="2000"/></label>
+									</div>
+									<div class="admin-check-row"><label class="commerce-check-label"><input type="checkbox" name="inventory_tracked" value="true"/><span>Track inventory</span></label><label class="commerce-check-label"><input type="checkbox" name="active" value="true" checked/><span>Active</span></label></div>
+									<button class="commerce-text-button" type="submit">Add SKU</button>
+								</form>
+							</section>
+							<section class="admin-commerce-section" aria-labelledby="shipping-fields-title">
+								<div class="admin-section-heading"><div><h2 id="shipping-fields-title">Fixed shipping prices</h2><p>These options belong to this product. Leave the list empty when shipping does not apply.</p></div></div>
+								<div class="admin-record-list">
+									for _, shipping := range data.Product.ShippingOptions {
+										<article class="admin-record">
+											<form class="admin-commerce-form" action={ shipping.UpdateAction } method="post">
+												<input type="hidden" name="csrf_token" value={ data.CSRFToken }/><input type="hidden" name="shipping_id" value={ shipping.ID }/>
+												<div class="admin-form-grid admin-form-grid-dense">
+													<label>Name<input name="name" maxlength="160" required value={ shipping.Name }/></label>
+													<label>Price in cents<input name="amount_cents" type="number" min="0" step="1" inputmode="numeric" required value={ commerceInt(shipping.PriceCents) }/></label>
+													<label>Sort order<input name="sort_order" type="number" min="0" step="1" inputmode="numeric" required value={ commerceQuantity(shipping.SortOrder) }/></label>
+												</div>
+												<label class="commerce-check-label">
+													<input
+														type="checkbox"
+														name="active"
+														value="true"
+														if shipping.Active {
+															checked
+														}
+													/><span>Active</span>
+												</label>
+												<button class="commerce-text-button" type="submit">Save shipping option</button>
+											</form>
+											<form action={ shipping.DeleteAction } method="post"><input type="hidden" name="csrf_token" value={ data.CSRFToken }/><input type="hidden" name="shipping_id" value={ shipping.ID }/><button class="commerce-text-button commerce-remove-button" type="submit">Delete shipping option</button></form>
+										</article>
+									}
+								</div>
+								<form class="admin-commerce-form admin-add-form" action={ data.AddShippingAction } method="post">
+									<input type="hidden" name="csrf_token" value={ data.CSRFToken }/>
+									<h3>Add shipping option</h3>
+									<div class="admin-form-grid admin-form-grid-dense">
+										<label>Name<input name="name" maxlength="160" required/></label>
+										<label>Price in cents<input name="amount_cents" type="number" min="0" step="1" inputmode="numeric" required/></label>
+										<label>Sort order<input name="sort_order" type="number" min="0" step="1" inputmode="numeric" required value="0"/></label>
+									</div>
+									<label class="commerce-check-label"><input type="checkbox" name="active" value="true" checked/><span>Active</span></label>
+									<button class="commerce-text-button" type="submit">Add shipping option</button>
+								</form>
+							</section>
+						}
+					</div>
+				</section>
+			</main>
+			@PageFooter()
+		</body>
+	</html>
+}

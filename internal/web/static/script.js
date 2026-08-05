@@ -15,9 +15,97 @@ nav?.addEventListener('click', (event) => {
   nav.classList.remove('open');
 });
 
-document.querySelector('[data-year]').textContent = new Date().getFullYear();
+const year = document.querySelector('[data-year]');
+if (year) year.textContent = new Date().getFullYear();
 
 document.body.addEventListener('htmx:afterSwap', (event) => {
   const target = event.detail.target;
   if (target.id === 'contact-form' && window.turnstile) window.turnstile.render(target.querySelector('.cf-turnstile'));
 });
+
+const formatCommerceMoney = (cents, currency) => {
+  const amount = Number.isFinite(cents) ? cents / 100 : 0;
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency: (currency || 'USD').toUpperCase(),
+    }).format(amount);
+  } catch {
+    return new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  }
+};
+
+document.querySelectorAll('[data-price-form]').forEach((form) => {
+  const output = form.querySelector('[data-product-price]');
+  if (!output) return;
+
+  const updatePrice = () => {
+    const baseCents = Number.parseInt(form.dataset.basePriceCents || '0', 10);
+    const replacement = form.querySelector('[data-price-mode="replace"]:checked');
+    let itemCents = replacement
+      ? Number.parseInt(replacement.dataset.priceCents || '0', 10)
+      : baseCents;
+
+    let orderCents = 0;
+    form.querySelectorAll('[data-price-mode="add"]:checked').forEach((input) => {
+      const cents = Number.parseInt(input.dataset.priceCents || '0', 10);
+      if (input.dataset.priceScope === 'order') orderCents += cents;
+      else itemCents += cents;
+    });
+
+    const quantityInput = form.querySelector('input[name="quantity"]');
+    const quantity = quantityInput
+      ? Math.max(1, Number.parseInt(quantityInput.value || '1', 10) || 1)
+      : 1;
+    output.textContent = formatCommerceMoney((itemCents * quantity) + orderCents, form.dataset.currency);
+  };
+
+  form.addEventListener('change', updatePrice);
+  form.addEventListener('input', (event) => {
+    if (event.target.matches('input[name="quantity"]')) updatePrice();
+  });
+  updatePrice();
+});
+
+const mountEmbeddedCheckout = async () => {
+  const mountPoint = document.querySelector('[data-stripe-checkout]');
+  if (!mountPoint) return;
+
+  const status = document.querySelector('#stripe-checkout-status');
+  const setStatus = (message, isError = false) => {
+    if (!status) return;
+    status.textContent = message;
+    status.classList.toggle('commerce-notice', isError);
+    status.classList.toggle('commerce-notice-error', isError);
+  };
+
+  const publishableKey = mountPoint.dataset.publishableKey;
+  const clientSecret = mountPoint.dataset.clientSecret;
+  if (!publishableKey || !clientSecret) {
+    setStatus('The secure payment form is unavailable. Please return to the cart and try again.', true);
+    return;
+  }
+  if (typeof window.Stripe !== 'function') {
+    setStatus('The secure payment service did not load. Check your connection and reload this page.', true);
+    return;
+  }
+
+  try {
+    const stripe = window.Stripe(publishableKey);
+    const checkout = await stripe.initEmbeddedCheckout({
+      fetchClientSecret: async () => clientSecret,
+    });
+    checkout.mount(mountPoint);
+    setStatus('Secure payment form loaded.');
+  } catch {
+    setStatus('The secure payment form could not be loaded. Please return to the cart and try again.', true);
+  }
+};
+
+mountEmbeddedCheckout();
+
+const commerceError = document.querySelector('[data-commerce-error]');
+commerceError?.focus();
