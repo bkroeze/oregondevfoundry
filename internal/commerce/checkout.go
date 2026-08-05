@@ -275,7 +275,7 @@ func (s *Store) cancelCheckoutReservation(ctx context.Context, checkoutID int64,
 	if sessionID == "" {
 		result, err = tx.ExecContext(ctx, `UPDATE commerce_checkouts SET status='expired',updated_at=? WHERE id=? AND status='pending' AND stripe_session_id IS NULL`, nowUnix(s), checkoutID)
 	} else {
-		result, err = tx.ExecContext(ctx, `UPDATE commerce_checkouts SET status='expired',updated_at=? WHERE id=? AND status='pending' AND stripe_session_id=?`, nowUnix(s), checkoutID, sessionID)
+		result, err = tx.ExecContext(ctx, `UPDATE commerce_checkouts SET status='expired',updated_at=? WHERE id=? AND status='pending' AND (stripe_session_id IS NULL OR stripe_session_id=?)`, nowUnix(s), checkoutID, sessionID)
 	}
 	if err != nil {
 		return fmt.Errorf("claim checkout cancellation: %w", err)

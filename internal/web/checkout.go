@@ -166,7 +166,7 @@ func (h Handler) expireUnattachedStripeSession(parent context.Context, checkoutI
 	if err := h.payments.ExpireSession(cleanupCtx, sessionID); err != nil {
 		return err
 	}
-	if err := h.commerce.CancelPendingCheckout(cleanupCtx, checkoutID); err != nil && !errors.Is(err, commerce.ErrNotFound) {
+	if err := h.commerce.CancelExpiredCheckout(cleanupCtx, checkoutID, sessionID); err != nil && !errors.Is(err, commerce.ErrNotFound) {
 		return err
 	}
 	return nil

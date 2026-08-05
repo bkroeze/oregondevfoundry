@@ -203,3 +203,30 @@ func TestStaleUnattachedCheckoutCleanupReleasesInventory(t *testing.T) {
 		t.Fatalf("stale checkout inventory = %#v, %v", remaining.Inventory, err)
 	}
 }
+
+func TestExpiredExternalSessionCancelsAmbiguouslyAttachedCheckout(t *testing.T) {
+	store, _ := newTestStore(t)
+	stock := int64(1)
+	product, err := store.CreateProduct(t.Context(), ProductParams{Slug: "ambiguous", MasterSKU: "AMBIGUOUS", Name: "Ambiguous", Type: ProductTypeSubscription, Active: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	sku, err := store.CreateSKU(t.Context(), SKUParams{ProductID: product.ID, SKU: "AMBIGUOUS-MONTHLY", Name: "Monthly", Kind: SKUKindPrimary, PriceCents: 1000, Inventory: &stock, Active: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	checkout, err := store.CreateCheckout(t.Context(), CreateCheckoutParams{StandaloneSKUID: sku.ID, BuyerEmail: "buyer@example.com", BuyerName: "Buyer"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = store.CancelExpiredCheckout(t.Context(), checkout.ID, "cs_ambiguous"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = store.CheckoutByID(t.Context(), checkout.ID); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("canceled checkout error = %v", err)
+	}
+	remaining, err := store.SKUByID(t.Context(), sku.ID)
+	if err != nil || remaining.Inventory == nil || *remaining.Inventory != 1 {
+		t.Fatalf("inventory after ambiguous cancellation = %#v, %v", remaining.Inventory, err)
+	}
+}
