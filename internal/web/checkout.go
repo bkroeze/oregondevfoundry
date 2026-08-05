@@ -153,11 +153,23 @@ func (h Handler) startEmbeddedCheckout(w http.ResponseWriter, r *http.Request, c
 		return
 	}
 	if _, err = h.commerce.AttachStripeSession(r.Context(), checkout.ID, session.ID); err != nil {
-		h.cancelUnattachedCheckout(r.Context(), checkout.ID)
-		h.commerceError(w, "attach Stripe checkout", err)
+		cleanupErr := h.expireUnattachedStripeSession(r.Context(), checkout.ID, session.ID)
+		h.commerceError(w, "attach Stripe checkout", errors.Join(err, cleanupErr))
 		return
 	}
 	h.renderEmbeddedCheckout(w, r, checkout, session, total)
+}
+
+func (h Handler) expireUnattachedStripeSession(parent context.Context, checkoutID int64, sessionID string) error {
+	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(parent), 5*time.Second)
+	defer cancel()
+	if err := h.payments.ExpireSession(cleanupCtx, sessionID); err != nil {
+		return err
+	}
+	if err := h.commerce.CancelPendingCheckout(cleanupCtx, checkoutID); err != nil && !errors.Is(err, commerce.ErrNotFound) {
+		return err
+	}
+	return nil
 }
 
 func (h Handler) cancelUnattachedCheckout(parent context.Context, checkoutID int64) {
@@ -339,19 +351,18 @@ func (h Handler) deliverFulfillment(ctx context.Context, result commerce.Fulfill
 		}
 	}
 	if result.InvitedUserID != nil && !result.InvitationSent {
-		token := result.InvitationToken
-		if token == "" {
-			var err error
-			token, err = h.commerce.IssueInvitationToken(ctx, *result.InvitedUserID)
-			if err != nil {
-				return err
-			}
-		}
 		claimed, err := h.commerce.ClaimInvitationDelivery(ctx, *result.InvitedUserID)
 		if err != nil {
 			return err
 		}
 		if claimed {
+			token := result.InvitationToken
+			if token == "" {
+				token, err = h.commerce.IssueClaimedInvitationToken(ctx, *result.InvitedUserID)
+				if err != nil {
+					return err
+				}
+			}
 			activationURL := h.config.PublicBaseURL + "/account/invite?token=" + url.QueryEscape(token)
 			if err := h.mailer.SendInvitation(ctx, notifications.Invitation{To: result.BuyerEmail, PurchaserName: result.BuyerName, ActivationURL: activationURL}); err != nil {
 				_ = h.commerce.ReleaseInvitationDelivery(ctx, *result.InvitedUserID)

@@ -93,8 +93,8 @@ func Load() (Config, error) {
 	}
 	if cfg.PublicBaseURL != "" {
 		baseURL, err := url.Parse(cfg.PublicBaseURL)
-		if err != nil || (baseURL.Scheme != "http" && baseURL.Scheme != "https") || baseURL.Host == "" || baseURL.RawQuery != "" || baseURL.Fragment != "" {
-			return Config{}, errors.New("PUBLIC_BASE_URL must be an absolute http or https URL without a query or fragment")
+		if err != nil || (baseURL.Scheme != "http" && baseURL.Scheme != "https") || baseURL.Host == "" || (baseURL.Path != "" && baseURL.Path != "/") || baseURL.RawQuery != "" || baseURL.Fragment != "" {
+			return Config{}, errors.New("PUBLIC_BASE_URL must be an absolute http or https origin without a path, query, or fragment")
 		}
 		cfg.PublicBaseURL = strings.TrimRight(baseURL.String(), "/")
 	}

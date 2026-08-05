@@ -93,11 +93,15 @@ func TestOneTimeFulfillmentIsIdempotentAndSnapshotsInventory(t *testing.T) {
 	if err != nil || !claimed {
 		t.Fatalf("claim invitation = %v, %v", claimed, err)
 	}
+	claimedToken, err := store.IssueClaimedInvitationToken(ctx, *first.InvitedUserID)
+	if err != nil || claimedToken == first.InvitationToken {
+		t.Fatalf("claimed invitation token = %q, %v", claimedToken, err)
+	}
 	if err = store.ReleaseInvitationDelivery(ctx, *first.InvitedUserID); err != nil {
 		t.Fatal(err)
 	}
 	reissued, err := store.IssueInvitationToken(ctx, *first.InvitedUserID)
-	if err != nil || reissued == first.InvitationToken {
+	if err != nil || reissued == claimedToken {
 		t.Fatalf("reissued invitation = %q, %v", reissued, err)
 	}
 	if _, err = authStore.CompleteInvitation(ctx, first.InvitationToken, []byte("a-secure-password")); !errors.Is(err, auth.ErrInvitationNotFound) {

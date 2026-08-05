@@ -66,14 +66,14 @@ func TestLoadStripeConfiguration(t *testing.T) {
 	t.Setenv("STRIPE_SECRET_KEY", "sk_test_value")
 	t.Setenv("STRIPE_PUBLISHABLE_KEY", "pk_test_value")
 	t.Setenv("STRIPE_WEBHOOK_SECRET", "whsec_value")
-	t.Setenv("PUBLIC_BASE_URL", "https://example.com/store/")
+	t.Setenv("PUBLIC_BASE_URL", "https://example.com/")
 	t.Setenv("ORDER_FROM", "")
 
 	cfg, err := Load()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.PublicBaseURL != "https://example.com/store" || cfg.OrderFrom != cfg.ContactFrom {
+	if cfg.PublicBaseURL != "https://example.com" || cfg.OrderFrom != cfg.ContactFrom {
 		t.Fatalf("unexpected Stripe config: %#v", cfg)
 	}
 }
@@ -103,5 +103,19 @@ func TestLoadRejectsMalformedPublicBaseURL(t *testing.T) {
 
 	if _, err := Load(); err == nil || !strings.Contains(err.Error(), "PUBLIC_BASE_URL") {
 		t.Fatalf("expected public URL error, got %v", err)
+	}
+}
+
+func TestLoadRejectsPublicBaseURLPath(t *testing.T) {
+	for _, name := range []string{"MAILGUN_API_KEY", "MAILGUN_DOMAIN", "CONTACT_TO", "CONTACT_FROM", "TURNSTILE_SITE_KEY", "TURNSTILE_SECRET_KEY"} {
+		t.Setenv(name, "value")
+	}
+	t.Setenv("STRIPE_SECRET_KEY", "sk_test_value")
+	t.Setenv("STRIPE_PUBLISHABLE_KEY", "pk_test_value")
+	t.Setenv("STRIPE_WEBHOOK_SECRET", "whsec_value")
+	t.Setenv("PUBLIC_BASE_URL", "https://example.com/store")
+
+	if _, err := Load(); err == nil || !strings.Contains(err.Error(), "without a path") {
+		t.Fatalf("expected public URL path error, got %v", err)
 	}
 }

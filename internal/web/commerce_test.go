@@ -313,6 +313,71 @@ func TestCartCheckoutCanRetryAfterStripeSessionFailure(t *testing.T) {
 	}
 }
 
+func TestAttachFailureExpiresStripeSessionBeforeReleasingInventory(t *testing.T) {
+	handler, _, store, gateway, _ := commerceHandler(t)
+	_, primary, _, shipping := seedOneTimeProduct(t, store)
+	cookies := csrfCookies(t, handler, "/shop/workshop")
+	added := serveForm(handler, http.MethodPost, "/cart/items", url.Values{
+		"csrf_token": {cookies[csrfCookie].Value}, "sku": {primary.SKU},
+		"shipping_code": {shippingID(shipping)}, "quantity": {"1"},
+	}, cookies)
+	mergeCookies(cookies, added.Result().Cookies())
+
+	request := httptest.NewRequest(http.MethodPost, "/checkout", strings.NewReader(url.Values{
+		"csrf_token": {cookies[csrfCookie].Value}, "name": {"Attach Failure"}, "email": {"attach@example.com"},
+	}.Encode()))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	for _, cookie := range cookies {
+		request.AddCookie(cookie)
+	}
+	requestCtx, cancelRequest := context.WithCancel(request.Context())
+	request = request.WithContext(requestCtx)
+	gateway.createHook = cancelRequest
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+
+	if response.Code != http.StatusInternalServerError || len(gateway.expired) != 1 || gateway.expired[0] != "cs_test_1" {
+		t.Fatalf("attach failure cleanup: status=%d expired=%#v", response.Code, gateway.expired)
+	}
+	released, err := store.SKUByID(t.Context(), primary.ID)
+	if err != nil || released.Inventory == nil || *released.Inventory != 3 {
+		t.Fatalf("inventory after expired session = %#v, %v", released.Inventory, err)
+	}
+}
+
+func TestAttachFailureRetainsInventoryWhenStripeSessionCannotExpire(t *testing.T) {
+	handler, _, store, gateway, _ := commerceHandler(t)
+	_, primary, _, shipping := seedOneTimeProduct(t, store)
+	cookies := csrfCookies(t, handler, "/shop/workshop")
+	added := serveForm(handler, http.MethodPost, "/cart/items", url.Values{
+		"csrf_token": {cookies[csrfCookie].Value}, "sku": {primary.SKU},
+		"shipping_code": {shippingID(shipping)}, "quantity": {"1"},
+	}, cookies)
+	mergeCookies(cookies, added.Result().Cookies())
+
+	request := httptest.NewRequest(http.MethodPost, "/checkout", strings.NewReader(url.Values{
+		"csrf_token": {cookies[csrfCookie].Value}, "name": {"Attach Failure"}, "email": {"attach@example.com"},
+	}.Encode()))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	for _, cookie := range cookies {
+		request.AddCookie(cookie)
+	}
+	requestCtx, cancelRequest := context.WithCancel(request.Context())
+	request = request.WithContext(requestCtx)
+	gateway.createHook = cancelRequest
+	gateway.expireErr = errors.New("Stripe unavailable")
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+
+	if response.Code != http.StatusInternalServerError {
+		t.Fatalf("attach failure status = %d", response.Code)
+	}
+	reserved, err := store.SKUByID(t.Context(), primary.ID)
+	if err != nil || reserved.Inventory == nil || *reserved.Inventory != 2 {
+		t.Fatalf("inventory after failed expiration = %#v, %v", reserved.Inventory, err)
+	}
+}
+
 func TestAsyncPaymentFailureReleasesReservedInventory(t *testing.T) {
 	handler, _, store, gateway, _ := commerceHandler(t)
 	_, primary, _, shipping := seedOneTimeProduct(t, store)

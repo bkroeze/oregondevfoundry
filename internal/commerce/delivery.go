@@ -58,6 +58,25 @@ func (s *Store) IssueInvitationToken(ctx context.Context, userID int64) (string,
 	return raw, nil
 }
 
+func (s *Store) IssueClaimedInvitationToken(ctx context.Context, userID int64) (string, error) {
+	if userID <= 0 {
+		return "", fmt.Errorf("%w: user id required", ErrInvalidInput)
+	}
+	raw, err := randomToken()
+	if err != nil {
+		return "", err
+	}
+	hash := tokenHash(raw)
+	result, err := s.db.ExecContext(ctx, `UPDATE commerce_invitations SET token_hash=? WHERE user_id=? AND used_at IS NULL AND delivery_status='sending'`, hash[:], userID)
+	if err != nil {
+		return "", fmt.Errorf("issue claimed invitation: %w", err)
+	}
+	if changed, _ := result.RowsAffected(); changed == 0 {
+		return "", fmt.Errorf("%w: invitation delivery is not claimed", ErrInvalidInput)
+	}
+	return raw, nil
+}
+
 func (s *Store) InvitationByToken(ctx context.Context, token string) (Invitation, error) {
 	token = strings.TrimSpace(token)
 	if token == "" {
