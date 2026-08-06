@@ -11,8 +11,11 @@ import (
 	"time"
 
 	"github.com/bkroeze/oregon-dev-foundry/internal/auth"
+	"github.com/bkroeze/oregon-dev-foundry/internal/commerce"
 	"github.com/bkroeze/oregon-dev-foundry/internal/config"
 	"github.com/bkroeze/oregon-dev-foundry/internal/contact"
+	"github.com/bkroeze/oregon-dev-foundry/internal/notifications"
+	"github.com/bkroeze/oregon-dev-foundry/internal/payment"
 	"github.com/bkroeze/oregon-dev-foundry/internal/web"
 )
 
@@ -35,12 +38,22 @@ func run() error {
 	}
 	defer users.Close()
 
+	store, err := commerce.New(users.DB())
+	if err != nil {
+		return err
+	}
+	var gateway payment.Gateway
+	if cfg.StripeSecretKey != "" {
+		gateway = payment.NewStripeGateway(cfg.StripeSecretKey, cfg.StripeWebhookSecret)
+	}
+	orderMailer := notifications.NewMailgunMailer(cfg.MailgunDomain, cfg.MailgunAPIKey, cfg.MailgunRegion, cfg.OrderFrom)
+
 	client := &http.Client{Timeout: 10 * time.Second}
 	sender := contact.NewMailgunSender(cfg.MailgunDomain, cfg.MailgunAPIKey, cfg.MailgunRegion, cfg.ContactFrom, cfg.ContactTo)
 	verifier := contact.NewTurnstileVerifier(cfg.TurnstileSecretKey, client)
 	server := &http.Server{
 		Addr:              cfg.Address,
-		Handler:           web.NewHandler(cfg, sender, verifier, users),
+		Handler:           web.NewHandlerWithCommerce(cfg, sender, verifier, users, store, gateway, orderMailer),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      15 * time.Second,

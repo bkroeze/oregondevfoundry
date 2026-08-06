@@ -1,0 +1,374 @@
+package templates
+
+import "strconv"
+
+type AdminUserView struct {
+	ID            string
+	Username      string
+	Email         string
+	DisplayName   string
+	Role          string
+	Status        string
+	CreatedAt     string
+	UpdatedAt     string
+	Version       int64
+	HasPurchases  bool
+	IsAdmin       bool
+	Orders        []AdminOrderView
+	Subscriptions []AdminSubscriptionView
+}
+
+type AdminOrderView struct {
+	ID           string
+	Confirmation string
+	Summary      string
+	Status       string
+	Total        string
+	CreatedAt    string
+}
+
+type AdminSubscriptionView struct {
+	ID        string
+	StripeID  string
+	Summary   string
+	Status    string
+	CreatedAt string
+}
+
+type AdminUsersData struct {
+	Account AccountView
+	Users   []AdminUserView
+	NewURL  string
+	Status  string
+	Error   string
+}
+
+type AdminUserData struct {
+	Account      AccountView
+	User         AdminUserView
+	SaveAction   string
+	DeleteAction string
+	CSRFToken    string
+	Status       string
+	Error        string
+	Errors       map[string]string
+	IsNew        bool
+}
+
+func adminUserVersion(version int64) string {
+	return strconv.FormatInt(version, 10)
+}
+
+templ AdminUsersPage(data AdminUsersData) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@PageHead("Users · Admin")
+		<body>
+			<a class="skip-link" href="#main">Skip to content</a>
+			@SiteHeader(data.Account)
+			<main id="main" class="commerce-main">
+				<section class="commerce-page section-pad" aria-labelledby="admin-users-title">
+					<header class="commerce-page-heading commerce-admin-heading">
+						<div>
+							<p class="kicker">Administration / Accounts</p>
+							<h1 id="admin-users-title">Users</h1>
+						</div>
+						if data.NewURL != "" {
+							<a class="button button-primary" href={ data.NewURL }>New user <span>↗</span></a>
+						}
+					</header>
+					@CommerceNotice(data.Status, data.Error)
+					if len(data.Users) == 0 {
+						<div class="commerce-empty">
+							<h2>No users yet.</h2>
+							<p>Create a user to grant account access. Customer accounts created through purchases will also appear here.</p>
+							if data.NewURL != "" {
+								<a class="button button-primary" href={ data.NewURL }>Create the first user <span>↗</span></a>
+							}
+						</div>
+					} else {
+						<div class="admin-product-table admin-user-table" role="region" aria-label="Users" tabindex="0">
+							<table>
+								<thead>
+									<tr><th scope="col">User</th><th scope="col">Email</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Purchases</th><th scope="col">Updated</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr>
+								</thead>
+								<tbody>
+									for _, user := range data.Users {
+										<tr>
+											<th scope="row"><strong>{ user.DisplayName }</strong><small>{ "@" + user.Username }</small></th>
+											<td>
+												if user.Email != "" {
+													{ user.Email }
+												} else {
+													<span class="admin-muted">Not provided</span>
+												}
+											</td>
+											<td>{ user.Role }</td>
+											<td><span class="commerce-state">{ user.Status }</span></td>
+											<td>
+												if user.HasPurchases {
+													Yes
+												} else {
+													No
+												}
+											</td>
+											<td>{ user.UpdatedAt }</td>
+											<td><a class="commerce-text-link" href={ "/admin/users/" + user.ID }>Manage</a></td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+					}
+				</section>
+			</main>
+			@PageFooter()
+		</body>
+	</html>
+}
+
+templ AdminUserPage(data AdminUserData) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@PageHead("User · Admin")
+		<body>
+			<a class="skip-link" href="#main">Skip to content</a>
+			@SiteHeader(data.Account)
+			<main id="main" class="commerce-main">
+				<section class="commerce-page section-pad" aria-labelledby="admin-user-title">
+					<header class="commerce-page-heading commerce-page-heading-compact">
+						<p class="kicker">Administration / User</p>
+						if data.IsNew {
+							<h1 id="admin-user-title">New user</h1>
+							<p>Create account credentials and choose the user's access level.</p>
+						} else {
+							<h1 id="admin-user-title">{ data.User.DisplayName }</h1>
+							<p>Update account details and review commerce records without altering completed transactions.</p>
+						}
+					</header>
+					@CommerceNotice(data.Status, data.Error)
+					<div class="admin-commerce-stack">
+						<section class="admin-commerce-section" aria-labelledby="user-fields-title">
+							<h2 id="user-fields-title">Account details</h2>
+							<form class="admin-commerce-form" action={ data.SaveAction } method="post">
+								<input type="hidden" name="csrf_token" value={ data.CSRFToken }/>
+								<input type="hidden" name="version" value={ adminUserVersion(data.User.Version) }/>
+								<div class="admin-form-grid">
+									<label for="admin-user-username">
+										Username
+										<input
+											id="admin-user-username"
+											name="username"
+											autocomplete="username"
+											maxlength="64"
+											required
+											value={ data.User.Username }
+											if data.Errors["username"] != "" {
+												aria-invalid="true"
+												aria-describedby="admin-user-username-error"
+											}
+										/>
+										@AccountFieldError("admin-user-username-error", data.Errors["username"])
+									</label>
+									<label for="admin-user-email">
+										Email <span>(optional)</span>
+										<input
+											id="admin-user-email"
+											name="email"
+											type="email"
+											autocomplete="email"
+											maxlength="254"
+											value={ data.User.Email }
+											if data.Errors["email"] != "" {
+												aria-invalid="true"
+												aria-describedby="admin-user-email-error"
+											}
+										/>
+										@AccountFieldError("admin-user-email-error", data.Errors["email"])
+									</label>
+									<label for="admin-user-display-name">
+										Display name
+										<input
+											id="admin-user-display-name"
+											name="display_name"
+											autocomplete="name"
+											maxlength="120"
+											required
+											value={ data.User.DisplayName }
+											if data.Errors["display_name"] != "" {
+												aria-invalid="true"
+												aria-describedby="admin-user-display-name-error"
+											}
+										/>
+										@AccountFieldError("admin-user-display-name-error", data.Errors["display_name"])
+									</label>
+									<label for="admin-user-role">
+										Role
+										<select
+											id="admin-user-role"
+											name="role"
+											required
+											if data.Errors["role"] != "" {
+												aria-invalid="true"
+												aria-describedby="admin-user-role-error"
+											}
+										>
+											<option
+												value="user"
+												if data.User.Role == "user" {
+													selected
+												}
+											>User</option>
+											<option
+												value="client"
+												if data.User.Role == "client" {
+													selected
+												}
+											>Client</option>
+											<option
+												value="admin"
+												if data.User.Role == "admin" {
+													selected
+												}
+											>Administrator</option>
+										</select>
+										@AccountFieldError("admin-user-role-error", data.Errors["role"])
+									</label>
+								</div>
+								<label class="commerce-check-label" for="admin-user-has-purchases">
+									<input
+										id="admin-user-has-purchases"
+										type="checkbox"
+										name="has_purchases"
+										value="true"
+										if data.User.HasPurchases {
+											checked
+										}
+									/>
+									<span>User has completed purchases</span>
+								</label>
+								if data.IsNew {
+									<label for="admin-user-password">
+										Password
+										<input
+											id="admin-user-password"
+											name="password"
+											type="password"
+											autocomplete="new-password"
+											minlength="12"
+											maxlength="72"
+											required
+											if data.Errors["password"] != "" {
+												aria-invalid="true"
+												aria-describedby="admin-user-password-error"
+											}
+										/>
+										@AccountFieldError("admin-user-password-error", data.Errors["password"])
+									</label>
+								} else if data.User.IsAdmin {
+									<div class="admin-password-protection" role="note">
+										<strong>Administrator password protected</strong>
+										<p>Administrator passwords cannot be changed by HTTP admin forms. Use the server CLI to change this administrator's password.</p>
+									</div>
+								} else {
+									<label for="admin-user-password">
+										New password <span>(optional)</span>
+										<input
+											id="admin-user-password"
+											name="password"
+											type="password"
+											autocomplete="new-password"
+											minlength="12"
+											maxlength="72"
+											if data.Errors["password"] != "" {
+												aria-invalid="true"
+												aria-describedby="admin-user-password-error"
+											}
+										/>
+										<span>Leave blank to keep the current password.</span>
+										@AccountFieldError("admin-user-password-error", data.Errors["password"])
+									</label>
+								}
+								<button class="button button-primary" type="submit">
+									if data.IsNew {
+										Create user <span>↗</span>
+									} else {
+										Save user <span>↗</span>
+									}
+								</button>
+							</form>
+						</section>
+						if !data.IsNew {
+							<section class="admin-commerce-section" aria-labelledby="user-record-title">
+								<h2 id="user-record-title">Account record</h2>
+								<dl class="account-details admin-account-details">
+									<div><dt>Username</dt><dd>{ data.User.Username }</dd></div>
+									<div>
+										<dt>Email</dt>
+										<dd>
+											if data.User.Email != "" {
+												{ data.User.Email }
+											} else {
+												Not provided
+											}
+										</dd>
+									</div>
+									<div><dt>Role</dt><dd>{ data.User.Role }</dd></div>
+									<div><dt>Status</dt><dd>{ data.User.Status }</dd></div>
+									<div><dt>Signed up</dt><dd>{ data.User.CreatedAt }</dd></div>
+									<div><dt>Last updated</dt><dd>{ data.User.UpdatedAt }</dd></div>
+								</dl>
+							</section>
+							<section class="admin-commerce-section" aria-labelledby="user-orders-title">
+								<div class="admin-section-heading"><div><h2 id="user-orders-title">Order history</h2><p>Completed and historical orders remain part of the commerce record.</p></div></div>
+								if len(data.User.Orders) == 0 {
+									<p class="admin-empty-record">No orders are associated with this user.</p>
+								} else {
+									<div class="admin-product-table admin-history-table" role="region" aria-label="Order history" tabindex="0">
+										<table>
+											<thead><tr><th scope="col">Order</th><th scope="col">Confirmation</th><th scope="col">Items</th><th scope="col">Status</th><th scope="col">Total</th><th scope="col">Created</th></tr></thead>
+											<tbody>
+												for _, order := range data.User.Orders {
+													<tr><th scope="row"><code>{ order.ID }</code></th><td>{ order.Confirmation }</td><td>{ order.Summary }</td><td><span class="commerce-state">{ order.Status }</span></td><td>{ order.Total }</td><td>{ order.CreatedAt }</td></tr>
+												}
+											</tbody>
+										</table>
+									</div>
+								}
+							</section>
+							<section class="admin-commerce-section" aria-labelledby="user-subscriptions-title">
+								<div class="admin-section-heading"><div><h2 id="user-subscriptions-title">Subscription history</h2><p>Review active and historical subscription records.</p></div></div>
+								if len(data.User.Subscriptions) == 0 {
+									<p class="admin-empty-record">No subscriptions are associated with this user.</p>
+								} else {
+									<div class="admin-product-table admin-history-table" role="region" aria-label="Subscription history" tabindex="0">
+										<table>
+											<thead><tr><th scope="col">Subscription</th><th scope="col">Stripe ID</th><th scope="col">Product</th><th scope="col">Status</th><th scope="col">Created</th></tr></thead>
+											<tbody>
+												for _, subscription := range data.User.Subscriptions {
+													<tr><th scope="row"><code>{ subscription.ID }</code></th><td><code>{ subscription.StripeID }</code></td><td>{ subscription.Summary }</td><td><span class="commerce-state">{ subscription.Status }</span></td><td>{ subscription.CreatedAt }</td></tr>
+												}
+											</tbody>
+										</table>
+									</div>
+								}
+							</section>
+							if data.DeleteAction != "" {
+								<section class="admin-danger-zone" aria-labelledby="delete-user-title">
+									<h2 id="delete-user-title">Delete user</h2>
+									<p>Deletes profile and sign-in access. Completed orders, payment information, invoices, and legally required records are retained.</p>
+									<form action={ data.DeleteAction } method="post">
+										<input type="hidden" name="csrf_token" value={ data.CSRFToken }/>
+										<input type="hidden" name="version" value={ adminUserVersion(data.User.Version) }/>
+										<button class="button button-danger" type="submit">Delete user</button>
+									</form>
+								</section>
+							}
+						}
+					</div>
+				</section>
+			</main>
+			@PageFooter()
+		</body>
+	</html>
+}

@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/mail"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -32,15 +33,20 @@ const (
 
 	minimumPasswordLength = 12
 	passwordCost          = 12
+	dummyPasswordHash     = "$2a$12$3V5Y7fMrWZ9rrJzY.5HfSe6Wf6x0PptuYLM2lGXB7k4f7w2bxAxeW"
 	sessionLifetime       = 24 * time.Hour
 )
 
 var (
-	ErrNotFound          = errors.New("user not found")
-	ErrInvalidCredential = errors.New("invalid username or password")
-	ErrUsernameExists    = errors.New("username already exists")
-	ErrConcurrentUpdate  = errors.New("user was updated by another process")
-	usernamePattern      = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._-]{2,63}$`)
+	ErrNotFound            = errors.New("user not found")
+	ErrInvalidCredential   = errors.New("invalid username or password")
+	ErrUsernameExists      = errors.New("username already exists")
+	ErrEmailExists         = errors.New("email already exists")
+	ErrConcurrentUpdate    = errors.New("user was updated by another process")
+	ErrAdminPasswordChange = errors.New("admin passwords may only be changed by the users CLI")
+	ErrInvitationNotFound  = errors.New("invitation not found")
+	ErrInvitationUsed      = errors.New("invitation has already been used")
+	usernamePattern        = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._-]{2,63}$`)
 )
 
 type Role string
@@ -50,12 +56,22 @@ type Status string
 type User struct {
 	ID           int64
 	Username     string
+	Email        string
 	DisplayName  string
 	Role         Role
 	HasPurchases bool
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	Version      int64
+}
+
+type Invitation struct {
+	ID        int64
+	UserID    int64
+	Email     string
+	SentAt    *time.Time
+	UsedAt    *time.Time
+	CreatedAt time.Time
 }
 
 func (u User) CustomerStatus() Status {
@@ -80,6 +96,7 @@ func ValidRole(role Role) bool {
 
 type CreateUserParams struct {
 	Username     string
+	Email        string
 	DisplayName  string
 	Role         Role
 	HasPurchases bool
@@ -87,12 +104,14 @@ type CreateUserParams struct {
 }
 
 type UpdateUserParams struct {
-	Username        string
-	DisplayName     string
-	Role            Role
-	HasPurchases    bool
-	Password        []byte
-	ExpectedVersion int64
+	Username             string
+	Email                string
+	DisplayName          string
+	Role                 Role
+	HasPurchases         bool
+	Password             []byte
+	ProtectAdminPassword bool
+	ExpectedVersion      int64
 }
 
 type Store struct {
@@ -126,12 +145,17 @@ func Open(path string) (*Store, error) {
 
 func (s *Store) Close() error { return s.db.Close() }
 
+// DB exposes the shared database connection for packages that need to
+// participate in the same SQLite database and transaction domain.
+func (s *Store) DB() *sql.DB { return s.db }
+
 func (s *Store) migrate(ctx context.Context) error {
 	const schema = `
 PRAGMA journal_mode = WAL;
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
     username TEXT NOT NULL COLLATE NOCASE UNIQUE,
+    email TEXT NOT NULL DEFAULT '',
     display_name TEXT NOT NULL,
     role TEXT NOT NULL CHECK (role IN ('user', 'client', 'admin')),
     has_purchases INTEGER NOT NULL DEFAULT 0 CHECK (has_purchases IN (0, 1)),
@@ -160,8 +184,17 @@ CREATE INDEX IF NOT EXISTS sessions_expires_at ON sessions(expires_at);
 	if _, err := s.db.ExecContext(ctx, schema); err != nil {
 		return fmt.Errorf("migrate database: %w", err)
 	}
-	if err := s.ensureUserVersion(ctx); err != nil {
+	if err := s.ensureUserColumn(ctx, "version", "INTEGER NOT NULL DEFAULT 1"); err != nil {
 		return err
+	}
+	if err := s.ensureUserColumn(ctx, "email", "TEXT NOT NULL DEFAULT ''"); err != nil {
+		return err
+	}
+	if err := s.backfillUserEmails(ctx); err != nil {
+		return err
+	}
+	if _, err := s.db.ExecContext(ctx, `CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique ON users(email COLLATE NOCASE) WHERE email <> ''`); err != nil {
+		return fmt.Errorf("create users email index: %w", err)
 	}
 	return nil
 }
@@ -174,26 +207,26 @@ func connectionDSN(path string) string {
 	return path + separator + "_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)"
 }
 
-func (s *Store) ensureUserVersion(ctx context.Context) error {
-	found, err := s.userVersionExists(ctx)
+func (s *Store) ensureUserColumn(ctx context.Context, name, definition string) error {
+	found, err := s.userColumnExists(ctx, name)
 	if err != nil {
 		return err
 	}
 	if found {
 		return nil
 	}
-	if _, err := s.db.ExecContext(ctx, `ALTER TABLE users ADD COLUMN version INTEGER NOT NULL DEFAULT 1`); err != nil {
+	if _, err := s.db.ExecContext(ctx, `ALTER TABLE users ADD COLUMN `+name+` `+definition); err != nil {
 		// Another process may have completed the same migration after our inspection.
-		found, inspectErr := s.userVersionExists(ctx)
+		found, inspectErr := s.userColumnExists(ctx, name)
 		if inspectErr == nil && found {
 			return nil
 		}
-		return fmt.Errorf("add users version: %w", err)
+		return fmt.Errorf("add users %s: %w", name, err)
 	}
 	return nil
 }
 
-func (s *Store) userVersionExists(ctx context.Context) (bool, error) {
+func (s *Store) userColumnExists(ctx context.Context, target string) (bool, error) {
 	rows, err := s.db.QueryContext(ctx, `PRAGMA table_info(users)`)
 	if err != nil {
 		return false, fmt.Errorf("inspect users schema: %w", err)
@@ -207,7 +240,7 @@ func (s *Store) userVersionExists(ctx context.Context) (bool, error) {
 			_ = rows.Close()
 			return false, fmt.Errorf("inspect users column: %w", err)
 		}
-		if name == "version" {
+		if name == target {
 			found = true
 		}
 	}
@@ -221,8 +254,61 @@ func (s *Store) userVersionExists(ctx context.Context) (bool, error) {
 	return found, nil
 }
 
+func (s *Store) backfillUserEmails(ctx context.Context) error {
+	rows, err := s.db.QueryContext(ctx, `SELECT id, username FROM users WHERE email = ''`)
+	if err != nil {
+		return fmt.Errorf("load users for email backfill: %w", err)
+	}
+	type candidate struct {
+		id    int64
+		email string
+	}
+	var candidates []candidate
+	for rows.Next() {
+		var id int64
+		var username string
+		if err := rows.Scan(&id, &username); err != nil {
+			_ = rows.Close()
+			return fmt.Errorf("scan user email backfill: %w", err)
+		}
+		email, err := normalizeEmail(username)
+		if err == nil && email != "" {
+			candidates = append(candidates, candidate{id: id, email: email})
+		}
+	}
+	if err := rows.Err(); err != nil {
+		_ = rows.Close()
+		return fmt.Errorf("load users for email backfill: %w", err)
+	}
+	if err := rows.Close(); err != nil {
+		return fmt.Errorf("close user email backfill rows: %w", err)
+	}
+	if len(candidates) == 0 {
+		return nil
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin user email backfill: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	for _, candidate := range candidates {
+		if _, err := tx.ExecContext(ctx, `UPDATE users SET email = ? WHERE id = ? AND email = ''`, candidate.email, candidate.id); err != nil {
+			return fmt.Errorf("backfill user email: %w", err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit user email backfill: %w", err)
+	}
+	return nil
+}
+
 func (s *Store) CreateUser(ctx context.Context, params CreateUserParams) (User, error) {
 	params.Username = normalizeUsername(params.Username)
+	var err error
+	params.Email, err = normalizeEmail(params.Email)
+	if err != nil {
+		return User{}, err
+	}
 	params.DisplayName = strings.TrimSpace(params.DisplayName)
 	if err := validateUser(params.Username, params.DisplayName, params.Role); err != nil {
 		return User{}, err
@@ -239,7 +325,10 @@ func (s *Store) CreateUser(ctx context.Context, params CreateUserParams) (User, 
 	defer func() { _ = tx.Rollback() }()
 
 	now := s.now().UTC().Truncate(time.Second)
-	result, err := tx.ExecContext(ctx, `INSERT INTO users (username, display_name, role, has_purchases, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`, params.Username, params.DisplayName, params.Role, params.HasPurchases, now.Unix(), now.Unix())
+	result, err := tx.ExecContext(ctx, `INSERT INTO users (username, email, display_name, role, has_purchases, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`, params.Username, params.Email, params.DisplayName, params.Role, params.HasPurchases, now.Unix(), now.Unix())
+	if isEmailUniqueConstraint(err) {
+		return User{}, ErrEmailExists
+	}
 	if isUniqueConstraint(err) {
 		return User{}, ErrUsernameExists
 	}
@@ -256,7 +345,7 @@ func (s *Store) CreateUser(ctx context.Context, params CreateUserParams) (User, 
 	if err := tx.Commit(); err != nil {
 		return User{}, fmt.Errorf("commit create user: %w", err)
 	}
-	return User{ID: id, Username: params.Username, DisplayName: params.DisplayName, Role: params.Role, HasPurchases: params.HasPurchases, CreatedAt: now, UpdatedAt: now, Version: 1}, nil
+	return User{ID: id, Username: params.Username, Email: params.Email, DisplayName: params.DisplayName, Role: params.Role, HasPurchases: params.HasPurchases, CreatedAt: now, UpdatedAt: now, Version: 1}, nil
 }
 
 func (s *Store) Authenticate(ctx context.Context, username string, password []byte) (User, error) {
@@ -265,13 +354,13 @@ func (s *Store) Authenticate(ctx context.Context, username string, password []by
 	var hash string
 	var createdAt, updatedAt int64
 	err := s.db.QueryRowContext(ctx, `
-SELECT u.id, u.username, u.display_name, u.role, u.has_purchases, u.created_at, u.updated_at, u.version, i.credential_hash
+SELECT u.id, u.username, u.email, u.display_name, u.role, u.has_purchases, u.created_at, u.updated_at, u.version, i.credential_hash
 FROM auth_identities i
 JOIN users u ON u.id = i.user_id
-WHERE i.provider = ? AND i.subject = ?`, PasswordProvider, username).Scan(&user.ID, &user.Username, &user.DisplayName, &user.Role, &user.HasPurchases, &createdAt, &updatedAt, &user.Version, &hash)
+WHERE i.provider = ? AND i.subject = ?`, PasswordProvider, username).Scan(&user.ID, &user.Username, &user.Email, &user.DisplayName, &user.Role, &user.HasPurchases, &createdAt, &updatedAt, &user.Version, &hash)
 	if errors.Is(err, sql.ErrNoRows) {
 		// Keep the missing-user path computationally similar to a wrong password.
-		_ = bcrypt.CompareHashAndPassword([]byte("$2a$12$3V5Y7fMrWZ9rrJzY.5HfSe6Wf6x0PptuYLM2lGXB7k4f7w2bxAxeW"), password)
+		_ = bcrypt.CompareHashAndPassword([]byte(dummyPasswordHash), password)
 		return User{}, ErrInvalidCredential
 	}
 	if err != nil {
@@ -285,16 +374,75 @@ WHERE i.provider = ? AND i.subject = ?`, PasswordProvider, username).Scan(&user.
 	return user, nil
 }
 
+func (s *Store) VerifyPassword(ctx context.Context, userID int64, password []byte) error {
+	var hash string
+	err := s.db.QueryRowContext(ctx, `SELECT credential_hash FROM auth_identities WHERE user_id = ? AND provider = ?`, userID, PasswordProvider).Scan(&hash)
+	if errors.Is(err, sql.ErrNoRows) {
+		_ = bcrypt.CompareHashAndPassword([]byte(dummyPasswordHash), password)
+		return ErrInvalidCredential
+	}
+	if err != nil {
+		return fmt.Errorf("load password identity: %w", err)
+	}
+	if bcrypt.CompareHashAndPassword([]byte(hash), password) != nil {
+		return ErrInvalidCredential
+	}
+	return nil
+}
+
+func (s *Store) ChangePassword(ctx context.Context, userID int64, current, newPassword []byte) error {
+	newHash, err := hashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin password change: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	var role Role
+	var currentHash string
+	err = tx.QueryRowContext(ctx, `
+SELECT u.role, i.credential_hash
+FROM users u
+JOIN auth_identities i ON i.user_id = u.id AND i.provider = ?
+WHERE u.id = ?`, PasswordProvider, userID).Scan(&role, &currentHash)
+	if errors.Is(err, sql.ErrNoRows) {
+		_ = bcrypt.CompareHashAndPassword([]byte(dummyPasswordHash), current)
+		return ErrInvalidCredential
+	}
+	if err != nil {
+		return fmt.Errorf("load password identity for change: %w", err)
+	}
+	if bcrypt.CompareHashAndPassword([]byte(currentHash), current) != nil {
+		return ErrInvalidCredential
+	}
+	if role == RoleAdmin {
+		return ErrAdminPasswordChange
+	}
+	if _, err := tx.ExecContext(ctx, `UPDATE auth_identities SET credential_hash = ? WHERE user_id = ? AND provider = ?`, string(newHash), userID, PasswordProvider); err != nil {
+		return fmt.Errorf("update password identity: %w", err)
+	}
+	if _, err := tx.ExecContext(ctx, `DELETE FROM sessions WHERE user_id = ?`, userID); err != nil {
+		return fmt.Errorf("revoke user sessions: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit password change: %w", err)
+	}
+	return nil
+}
+
 func (s *Store) UserByID(ctx context.Context, id int64) (User, error) {
-	return s.queryUser(ctx, `SELECT id, username, display_name, role, has_purchases, created_at, updated_at, version FROM users WHERE id = ?`, id)
+	return s.queryUser(ctx, `SELECT id, username, email, display_name, role, has_purchases, created_at, updated_at, version FROM users WHERE id = ?`, id)
 }
 
 func (s *Store) UserByUsername(ctx context.Context, username string) (User, error) {
-	return s.queryUser(ctx, `SELECT id, username, display_name, role, has_purchases, created_at, updated_at, version FROM users WHERE username = ?`, normalizeUsername(username))
+	return s.queryUser(ctx, `SELECT id, username, email, display_name, role, has_purchases, created_at, updated_at, version FROM users WHERE username = ?`, normalizeUsername(username))
 }
 
 func (s *Store) ListUsers(ctx context.Context) ([]User, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT id, username, display_name, role, has_purchases, created_at, updated_at, version FROM users ORDER BY id`)
+	rows, err := s.db.QueryContext(ctx, `SELECT id, username, email, display_name, role, has_purchases, created_at, updated_at, version FROM users ORDER BY id`)
 	if err != nil {
 		return nil, fmt.Errorf("list users: %w", err)
 	}
@@ -316,6 +464,11 @@ func (s *Store) ListUsers(ctx context.Context) ([]User, error) {
 
 func (s *Store) UpdateUser(ctx context.Context, id int64, params UpdateUserParams) (User, error) {
 	params.Username = normalizeUsername(params.Username)
+	var err error
+	params.Email, err = normalizeEmail(params.Email)
+	if err != nil {
+		return User{}, err
+	}
 	params.DisplayName = strings.TrimSpace(params.DisplayName)
 	if err := validateUser(params.Username, params.DisplayName, params.Role); err != nil {
 		return User{}, err
@@ -324,7 +477,6 @@ func (s *Store) UpdateUser(ctx context.Context, id int64, params UpdateUserParam
 		return User{}, errors.New("expected user version is required")
 	}
 	var hash []byte
-	var err error
 	if len(params.Password) > 0 {
 		hash, err = hashPassword(params.Password)
 		if err != nil {
@@ -337,9 +489,23 @@ func (s *Store) UpdateUser(ctx context.Context, id int64, params UpdateUserParam
 		return User{}, fmt.Errorf("begin update user: %w", err)
 	}
 	defer func() { _ = tx.Rollback() }()
+	if len(hash) > 0 && params.ProtectAdminPassword {
+		var currentRole Role
+		if err := tx.QueryRowContext(ctx, `SELECT role FROM users WHERE id = ?`, id).Scan(&currentRole); errors.Is(err, sql.ErrNoRows) {
+			return User{}, ErrNotFound
+		} else if err != nil {
+			return User{}, fmt.Errorf("load user role for password protection: %w", err)
+		}
+		if currentRole == RoleAdmin || params.Role == RoleAdmin {
+			return User{}, ErrAdminPasswordChange
+		}
+	}
 
 	now := s.now().UTC().Truncate(time.Second)
-	result, err := tx.ExecContext(ctx, `UPDATE users SET username = ?, display_name = ?, role = ?, has_purchases = ?, updated_at = ?, version = version + 1 WHERE id = ? AND version = ?`, params.Username, params.DisplayName, params.Role, params.HasPurchases, now.Unix(), id, params.ExpectedVersion)
+	result, err := tx.ExecContext(ctx, `UPDATE users SET username = ?, email = ?, display_name = ?, role = ?, has_purchases = ?, updated_at = ?, version = version + 1 WHERE id = ? AND version = ?`, params.Username, params.Email, params.DisplayName, params.Role, params.HasPurchases, now.Unix(), id, params.ExpectedVersion)
+	if isEmailUniqueConstraint(err) {
+		return User{}, ErrEmailExists
+	}
 	if isUniqueConstraint(err) {
 		return User{}, ErrUsernameExists
 	}
@@ -427,7 +593,7 @@ func (s *Store) UserBySession(ctx context.Context, token string) (User, error) {
 	hash := sha256.Sum256([]byte(token))
 	now := s.now().UTC().Unix()
 	user, err := s.queryUser(ctx, `
-SELECT u.id, u.username, u.display_name, u.role, u.has_purchases, u.created_at, u.updated_at, u.version
+SELECT u.id, u.username, u.email, u.display_name, u.role, u.has_purchases, u.created_at, u.updated_at, u.version
 FROM sessions s
 JOIN users u ON u.id = s.user_id
 WHERE s.token_hash = ? AND s.expires_at > ?`, hash[:], now)
@@ -448,6 +614,124 @@ func (s *Store) DeleteSession(ctx context.Context, token string) error {
 	return nil
 }
 
+func (s *Store) InvitationByToken(ctx context.Context, token string) (Invitation, User, error) {
+	token = strings.TrimSpace(token)
+	if token == "" {
+		return Invitation{}, User{}, ErrInvitationNotFound
+	}
+	hash := sha256.Sum256([]byte(token))
+	var invitation Invitation
+	var user User
+	var sentAt, usedAt sql.NullInt64
+	var invitationCreated, userCreated, userUpdated int64
+	err := s.db.QueryRowContext(ctx, `
+SELECT i.id, i.user_id, i.email, i.sent_at, i.used_at, i.created_at,
+       u.id, u.username, u.email, u.display_name, u.role, u.has_purchases, u.created_at, u.updated_at, u.version
+FROM commerce_invitations i
+JOIN users u ON u.id = i.user_id
+WHERE i.token_hash = ?`, hash[:]).Scan(
+		&invitation.ID, &invitation.UserID, &invitation.Email, &sentAt, &usedAt, &invitationCreated,
+		&user.ID, &user.Username, &user.Email, &user.DisplayName, &user.Role, &user.HasPurchases, &userCreated, &userUpdated, &user.Version,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return Invitation{}, User{}, ErrInvitationNotFound
+	}
+	if err != nil {
+		return Invitation{}, User{}, fmt.Errorf("load invitation: %w", err)
+	}
+	invitation.CreatedAt = time.Unix(invitationCreated, 0).UTC()
+	if sentAt.Valid {
+		value := time.Unix(sentAt.Int64, 0).UTC()
+		invitation.SentAt = &value
+	}
+	if usedAt.Valid {
+		value := time.Unix(usedAt.Int64, 0).UTC()
+		invitation.UsedAt = &value
+	}
+	user.CreatedAt = time.Unix(userCreated, 0).UTC()
+	user.UpdatedAt = time.Unix(userUpdated, 0).UTC()
+	return invitation, user, nil
+}
+
+func (s *Store) CompleteInvitation(ctx context.Context, token string, password []byte) (User, error) {
+	return s.CompleteInvitationProfile(ctx, token, "", "", password)
+}
+
+func (s *Store) CompleteInvitationProfile(ctx context.Context, token, username, displayName string, password []byte) (User, error) {
+	token = strings.TrimSpace(token)
+	if token == "" {
+		return User{}, ErrInvitationNotFound
+	}
+	credentialHash, err := hashPassword(password)
+	if err != nil {
+		return User{}, err
+	}
+	tokenDigest := sha256.Sum256([]byte(token))
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return User{}, fmt.Errorf("begin invitation activation: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	var user User
+	var usedAt sql.NullInt64
+	var createdAt, updatedAt int64
+	err = tx.QueryRowContext(ctx, `
+SELECT u.id, u.username, u.email, u.display_name, u.role, u.has_purchases, u.created_at, u.updated_at, u.version, i.used_at
+FROM commerce_invitations i
+JOIN users u ON u.id = i.user_id
+WHERE i.token_hash = ?`, tokenDigest[:]).Scan(&user.ID, &user.Username, &user.Email, &user.DisplayName, &user.Role, &user.HasPurchases, &createdAt, &updatedAt, &user.Version, &usedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return User{}, ErrInvitationNotFound
+	}
+	if err != nil {
+		return User{}, fmt.Errorf("load invitation activation: %w", err)
+	}
+	if usedAt.Valid {
+		return User{}, ErrInvitationUsed
+	}
+	customProfile := strings.TrimSpace(username) != "" || strings.TrimSpace(displayName) != ""
+	if strings.TrimSpace(username) != "" {
+		user.Username = normalizeUsername(username)
+	}
+	if strings.TrimSpace(displayName) != "" {
+		user.DisplayName = strings.TrimSpace(displayName)
+	}
+	if customProfile {
+		if err := validateUser(user.Username, user.DisplayName, user.Role); err != nil {
+			return User{}, err
+		}
+	}
+	now := s.now().UTC().Truncate(time.Second)
+	result, err := tx.ExecContext(ctx, `UPDATE commerce_invitations SET used_at = ? WHERE token_hash = ? AND used_at IS NULL`, now.Unix(), tokenDigest[:])
+	if err != nil {
+		return User{}, fmt.Errorf("consume invitation: %w", err)
+	}
+	if changed, _ := result.RowsAffected(); changed != 1 {
+		return User{}, ErrInvitationUsed
+	}
+	result, err = tx.ExecContext(ctx, `UPDATE users SET username = ?, display_name = ?, updated_at = ?, version = version + 1 WHERE id = ? AND version = ?`, user.Username, user.DisplayName, now.Unix(), user.ID, user.Version)
+	if isUniqueConstraint(err) {
+		return User{}, ErrUsernameExists
+	}
+	if err != nil {
+		return User{}, fmt.Errorf("update invited user profile: %w", err)
+	}
+	if changed, _ := result.RowsAffected(); changed != 1 {
+		return User{}, ErrConcurrentUpdate
+	}
+	if _, err = tx.ExecContext(ctx, `INSERT INTO auth_identities (user_id, provider, subject, credential_hash) VALUES (?, ?, ?, ?)`, user.ID, PasswordProvider, user.Username, string(credentialHash)); err != nil {
+		return User{}, fmt.Errorf("create invited password identity: %w", err)
+	}
+	if err = tx.Commit(); err != nil {
+		return User{}, fmt.Errorf("commit invitation activation: %w", err)
+	}
+	user.CreatedAt = time.Unix(createdAt, 0).UTC()
+	user.UpdatedAt = now
+	user.Version++
+	return user, nil
+}
+
 func (s *Store) queryUser(ctx context.Context, query string, args ...any) (User, error) {
 	user, err := scanUser(s.db.QueryRowContext(ctx, query, args...))
 	if errors.Is(err, sql.ErrNoRows) {
@@ -463,7 +747,7 @@ type scanner interface {
 func scanUser(row scanner) (User, error) {
 	var user User
 	var createdAt, updatedAt int64
-	if err := row.Scan(&user.ID, &user.Username, &user.DisplayName, &user.Role, &user.HasPurchases, &createdAt, &updatedAt, &user.Version); err != nil {
+	if err := row.Scan(&user.ID, &user.Username, &user.Email, &user.DisplayName, &user.Role, &user.HasPurchases, &createdAt, &updatedAt, &user.Version); err != nil {
 		return User{}, err
 	}
 	user.CreatedAt = time.Unix(createdAt, 0).UTC()
@@ -500,6 +784,22 @@ func hashPassword(password []byte) ([]byte, error) {
 
 func normalizeUsername(username string) string {
 	return strings.ToLower(strings.TrimSpace(username))
+}
+
+func normalizeEmail(email string) (string, error) {
+	email = strings.TrimSpace(email)
+	if email == "" {
+		return "", nil
+	}
+	address, err := mail.ParseAddress(email)
+	if err != nil || address.Address != email {
+		return "", errors.New("email must be a valid address")
+	}
+	return strings.ToLower(email), nil
+}
+
+func isEmailUniqueConstraint(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "UNIQUE constraint failed: users.email")
 }
 
 func isUniqueConstraint(err error) bool {

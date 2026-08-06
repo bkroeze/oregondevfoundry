@@ -13,7 +13,20 @@ type LoginData struct {
 	Account  AccountView
 	Username string
 	Error    string
+	Status   string
 	Next     string
+}
+
+type PasswordChangeData struct {
+	Account AccountView
+	Errors  map[string]string
+	Error   string
+}
+
+type DeleteAccountData struct {
+	Account AccountView
+	Errors  map[string]string
+	Error   string
 }
 
 templ SiteHeader(account AccountView) {
@@ -78,6 +91,12 @@ templ PageFooter() {
 	<script src="/script.js"></script>
 }
 
+templ AccountFieldError(id string, message string) {
+	if message != "" {
+		<span class="account-field-error" id={ id }>{ message }</span>
+	}
+}
+
 templ LoginPage(data LoginData) {
 	<!DOCTYPE html>
 	<html lang="en">
@@ -90,6 +109,7 @@ templ LoginPage(data LoginData) {
 					<p class="kicker">Account access</p>
 					<h1>Log in</h1>
 					<p class="status-badge">Customer status: <strong>Visitor</strong></p>
+					@CommerceNotice(data.Status, "")
 					<form class="account-form" action="/login" method="post">
 						<input type="hidden" name="csrf_token" value={ data.Account.CSRFToken }/>
 						<input type="hidden" name="next" value={ data.Next }/>
@@ -123,6 +143,163 @@ templ UserProfilePage(account AccountView) {
 						<div><dt>Username</dt><dd>{ account.Username }</dd></div>
 						<div><dt>Role</dt><dd>{ account.Role }</dd></div>
 					</dl>
+					<div class="account-actions">
+						<a class="button" href="/profile/password">Change password <span>↗</span></a>
+						<a class="button button-danger" href="/profile/delete">Delete account <span>↗</span></a>
+					</div>
+				</section>
+			</main>
+			@PageFooter()
+		</body>
+	</html>
+}
+
+templ PasswordChangePage(data PasswordChangeData) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@PageHead("Change password")
+		<body>
+			<a class="skip-link" href="#main">Skip to content</a>
+			@SiteHeader(data.Account)
+			<main id="main" class="account-main">
+				<section class="account-panel account-panel-wide" aria-labelledby="password-change-title">
+					<p class="kicker">Account / Security</p>
+					<h1 id="password-change-title">Change password</h1>
+					if data.Account.Role == "admin" {
+						<p class="account-intro">Administrator passwords cannot be changed through self-service HTTP forms. Use the server CLI to change an administrator password.</p>
+						if data.Error != "" {
+							<p class="account-error" role="alert" tabindex="-1">{ data.Error }</p>
+						}
+						<a class="text-link" href="/profile">Return to profile</a>
+					} else {
+						<p class="account-intro">Verify your current password, then choose a new password of at least 12 characters. Changing it signs you out of every active session.</p>
+						if data.Error != "" {
+							<p class="account-error" role="alert" tabindex="-1">{ data.Error }</p>
+						}
+						<form class="account-form" action="/profile/password" method="post">
+							<input type="hidden" name="csrf_token" value={ data.Account.CSRFToken }/>
+							<label for="current-password">
+								Current password
+								<input
+									id="current-password"
+									name="current_password"
+									type="password"
+									autocomplete="current-password"
+									maxlength="72"
+									required
+									autofocus
+									if data.Errors["current_password"] != "" {
+										aria-invalid="true"
+										aria-describedby="current-password-error"
+									}
+								/>
+								@AccountFieldError("current-password-error", data.Errors["current_password"])
+							</label>
+							<label for="new-password">
+								New password
+								<input
+									id="new-password"
+									name="new_password"
+									type="password"
+									autocomplete="new-password"
+									minlength="12"
+									maxlength="72"
+									required
+									if data.Errors["new_password"] != "" {
+										aria-invalid="true"
+										aria-describedby="new-password-error"
+									}
+								/>
+								@AccountFieldError("new-password-error", data.Errors["new_password"])
+							</label>
+							<label for="password-confirmation">
+								Confirm new password
+								<input
+									id="password-confirmation"
+									name="confirm_password"
+									type="password"
+									autocomplete="new-password"
+									minlength="12"
+									maxlength="72"
+									required
+									if data.Errors["confirm_password"] != "" {
+										aria-invalid="true"
+										aria-describedby="password-confirmation-error"
+									}
+								/>
+								@AccountFieldError("password-confirmation-error", data.Errors["confirm_password"])
+							</label>
+							<div class="account-actions">
+								<button class="button button-primary" type="submit">Change password <span>↗</span></button>
+								<a class="text-link" href="/profile">Cancel</a>
+							</div>
+						</form>
+					}
+				</section>
+			</main>
+			@PageFooter()
+		</body>
+	</html>
+}
+
+templ DeleteAccountPage(data DeleteAccountData) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@PageHead("Delete account")
+		<body>
+			<a class="skip-link" href="#main">Skip to content</a>
+			@SiteHeader(data.Account)
+			<main id="main" class="account-main">
+				<section class="account-panel account-panel-wide" aria-labelledby="delete-account-title">
+					<p class="kicker">Account / Permanent action</p>
+					<h1 id="delete-account-title">Delete account</h1>
+					<div class="account-retention-notice">
+						<h2>What deletion does</h2>
+						<p>Your profile and sign-in access are deleted. Open checkout sessions and active subscriptions are canceled.</p>
+						<p>Completed orders, payment information, invoices, and legally required records are retained.</p>
+					</div>
+					if data.Error != "" {
+						<p class="account-error" role="alert" tabindex="-1">{ data.Error }</p>
+					}
+					<form class="account-form" action="/profile/delete" method="post">
+						<input type="hidden" name="csrf_token" value={ data.Account.CSRFToken }/>
+						<label for="delete-current-password">
+							Current password
+							<input
+								id="delete-current-password"
+								name="current_password"
+								type="password"
+								autocomplete="current-password"
+								maxlength="72"
+								required
+								autofocus
+								if data.Errors["current_password"] != "" {
+									aria-invalid="true"
+									aria-describedby="delete-current-password-error"
+								}
+							/>
+							@AccountFieldError("delete-current-password-error", data.Errors["current_password"])
+						</label>
+						<label class="account-check-label" for="confirm-delete">
+							<input
+								id="confirm-delete"
+								name="confirm_delete"
+								type="checkbox"
+								value="true"
+								required
+								if data.Errors["confirm_delete"] != "" {
+									aria-invalid="true"
+									aria-describedby="confirm-delete-error"
+								}
+							/>
+							<span>I understand that deleting my account is permanent.</span>
+						</label>
+						@AccountFieldError("confirm-delete-error", data.Errors["confirm_delete"])
+						<div class="account-actions">
+							<button class="button button-danger" type="submit">Delete my account</button>
+							<a class="text-link" href="/profile">Cancel</a>
+						</div>
+					</form>
 				</section>
 			</main>
 			@PageFooter()
@@ -162,7 +339,11 @@ templ AdminLandingPage(account AccountView) {
 					<p class="kicker">Account / Administration</p>
 					<h1>Admin landing</h1>
 					<p class="status-badge">Customer status: <strong>{ account.Status }</strong></p>
-					<p class="account-intro">Administrative account access is active. Operational tools will be added in later rounds.</p>
+					<p class="account-intro">Manage the storefront catalog and user accounts from the tools below.</p>
+					<nav class="account-actions account-admin-actions" aria-label="Administration tools">
+						<a class="button button-primary" href="/admin/shop">Shop management <span>↗</span></a>
+						<a class="button" href="/admin/users">User management <span>↗</span></a>
+					</nav>
 				</section>
 			</main>
 			@PageFooter()
