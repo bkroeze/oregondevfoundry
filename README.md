@@ -112,7 +112,7 @@ just check      # generation consistency, format, tests, vet, and build
 
 | Method and path | Purpose |
 | --- | --- |
-| `GET /` | Render the site. |
+| `GET /` | Render the public site, including process, work, testimonials, company context, and contact sections. |
 | `GET /login` | Render username/password login and Visitor status. |
 | `POST /login` | Validate CSRF and credentials, then start a session. |
 | `POST /logout` | Validate CSRF and end the current session. |
@@ -135,6 +135,7 @@ just check      # generation consistency, format, tests, vet, and build
 | `GET, POST /account/invite` | Activate an account requested during purchase. |
 | `GET /styles.css` | Embedded stylesheet. |
 | `GET /script.js` | Embedded navigation/year/HTMX integration script. |
+| `GET /assets/*` | Serve embedded public image assets, including testimonial logos. |
 | `GET /api/contact-config` | Return the public Turnstile site key. |
 | `POST /api/contact` | Validate Turnstile and send the inquiry through Mailgun. |
 | `GET /healthz` | Container health probe; returns `ok`. |

@@ -72,6 +72,7 @@ func NewHandlerWithCommerce(cfg config.Config, sender contact.Sender, verifier c
 	mux.HandleFunc("POST /api/contact", h.submitContact)
 	mux.Handle("GET /styles.css", cache(http.FileServer(http.FS(static))))
 	mux.Handle("GET /script.js", cache(http.FileServer(http.FS(static))))
+	mux.Handle("GET /assets/", cache(http.FileServer(http.FS(static))))
 	mux.HandleFunc("GET /services", h.servicesPage)
 	mux.HandleFunc("GET /shop/vending-signage", h.vendingSignagePage)
 	mux.HandleFunc("GET /shop/blocks/{key}", h.productBlock)
