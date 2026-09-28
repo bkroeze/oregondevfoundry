@@ -67,6 +67,16 @@ just run       # generate and run directly
 
 The service logs its listen address. Stop it with `Ctrl-C`; `SIGINT` and `SIGTERM` trigger a bounded graceful shutdown.
 
+Apply the default test product fixture (or provide another JSON fixture and database path):
+
+```sh
+just fixture
+just fixture fixtures/another-product.json /tmp/oregon-dev-foundry.db
+```
+
+The fixture command creates or updates the product by slug or master SKU, then creates or updates its listed SKUs and shipping options. Records omitted from a fixture are left unchanged. Use `null` for an unlimited SKU inventory.
+
+
 ### User CRUD
 
 The `users` recipe supports `list`, `show`, `create`, `update`, and `delete`. Passwords are never accepted in command arguments. Pipe them over standard input:

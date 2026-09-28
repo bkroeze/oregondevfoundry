@@ -1,0 +1,33 @@
+{
+  "slug": "test-product",
+  "master_sku": "TEST-PRODUCT",
+  "name": "Test Product",
+  "description": "A product for checkout integration testing.",
+  "type": "one_time",
+  "active": true,
+  "skus": [
+    {
+      "sku": "TEST-PRODUCT-RED",
+      "name": "Red",
+      "kind": "primary",
+      "options": {"color": "red"},
+      "price_cents": 1,
+      "active": true
+    },
+    {
+      "sku": "TEST-PRODUCT-BLUE",
+      "name": "Blue",
+      "kind": "primary",
+      "options": {"color": "blue"},
+      "price_cents": 1,
+      "active": true
+    }
+  ],
+  "shipping_options": [
+    {
+      "name": "Free shipping",
+      "amount_cents": 0,
+      "active": true
+    }
+  ]
+}

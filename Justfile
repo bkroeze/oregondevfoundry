@@ -25,6 +25,17 @@ build: generate
 run: generate
     go run ./cmd/server
 
+
+# Apply an idempotent JSON product fixture.
+fixture path="fixtures/test-product.json" database="":
+    #!/usr/bin/env bash
+    fixture_path={{ quote(path) }}
+    database={{ quote(database) }}
+    if [[ -n "$database" ]]; then
+      exec go run ./cmd/catalog fixture --database "$database" "$fixture_path"
+    fi
+    exec go run ./cmd/catalog fixture "$fixture_path"
+
 # Manage users: `just users list|show|create|update|delete [username] [display-name] [role] [has-purchases]`.
 users operation="list" username="" display_name="" role="user" has_purchases="false":
     #!/usr/bin/env bash
