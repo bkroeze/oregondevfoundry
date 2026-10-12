@@ -72,11 +72,16 @@ func NewHandlerWithCommerce(cfg config.Config, sender contact.Sender, verifier c
 	mux.HandleFunc("POST /api/contact", h.submitContact)
 	mux.Handle("GET /styles.css", cache(http.FileServer(http.FS(static))))
 	mux.Handle("GET /script.js", cache(http.FileServer(http.FS(static))))
-	mux.Handle("GET /assets/", cache(http.FileServer(http.FS(static))))
+	if cfg.TestimonialsEnabled {
+		mux.Handle("GET /assets/testimonials/", cache(http.FileServer(http.FS(static))))
+	}
 	if cfg.ServicesEnabled {
 		mux.HandleFunc("GET /services", h.servicesPage)
+		mux.HandleFunc("GET /services/ai-concierge", h.aiConciergePage)
+		mux.HandleFunc("GET /shop/vending-signage", h.vendingSignagePage)
+	} else {
+		mux.HandleFunc("GET /shop/vending-signage", http.NotFound)
 	}
-	mux.HandleFunc("GET /shop/vending-signage", h.vendingSignagePage)
 	mux.HandleFunc("GET /shop/blocks/{key}", h.productBlock)
 	mux.HandleFunc("GET /shop/{slug}", h.productPage)
 	mux.HandleFunc("GET /cart", h.cartPage)
@@ -89,7 +94,6 @@ func NewHandlerWithCommerce(cfg config.Config, sender contact.Sender, verifier c
 	mux.HandleFunc("POST /stripe/webhook", h.stripeWebhook)
 	mux.HandleFunc("GET /account/invite", h.invitationPage)
 	mux.HandleFunc("POST /account/invite", h.completeInvitation)
-	mux.HandleFunc("GET /services/ai-concierge", h.aiConciergePage)
 	mux.HandleFunc("GET /login", h.loginPage)
 	mux.HandleFunc("POST /login", h.login)
 	mux.HandleFunc("POST /logout", h.logout)

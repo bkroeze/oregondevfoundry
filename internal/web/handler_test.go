@@ -84,10 +84,29 @@ func TestFeatureGates(t *testing.T) {
 		name                string
 		config              config.Config
 		serviceStatus       int
+		testimonialStatus   int
 		servicesVisible     bool
 		testimonialsVisible bool
 	}{
-		{name: "disabled", config: config.Config{}, serviceStatus: http.StatusNotFound},
+		{
+			name:              "disabled",
+			serviceStatus:     http.StatusNotFound,
+			testimonialStatus: http.StatusNotFound,
+		},
+		{
+			name:              "services only",
+			config:            config.Config{ServicesEnabled: true},
+			serviceStatus:     http.StatusOK,
+			testimonialStatus: http.StatusNotFound,
+			servicesVisible:   true,
+		},
+		{
+			name:                "testimonials only",
+			config:              config.Config{TestimonialsEnabled: true},
+			serviceStatus:       http.StatusNotFound,
+			testimonialStatus:   http.StatusOK,
+			testimonialsVisible: true,
+		},
 		{
 			name: "enabled",
 			config: config.Config{
@@ -95,6 +114,7 @@ func TestFeatureGates(t *testing.T) {
 				TestimonialsEnabled: true,
 			},
 			serviceStatus:       http.StatusOK,
+			testimonialStatus:   http.StatusOK,
 			servicesVisible:     true,
 			testimonialsVisible: true,
 		},
@@ -102,10 +122,18 @@ func TestFeatureGates(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			handler := NewHandler(test.config, &fakeSender{}, fakeVerifier{}, testStore(t))
 
-			serviceResponse := httptest.NewRecorder()
-			handler.ServeHTTP(serviceResponse, httptest.NewRequest(http.MethodGet, "/services", nil))
-			if serviceResponse.Code != test.serviceStatus {
-				t.Fatalf("GET /services: status=%d, want %d", serviceResponse.Code, test.serviceStatus)
+			for _, path := range []string{"/services", "/services/ai-concierge", "/shop/vending-signage"} {
+				response := httptest.NewRecorder()
+				handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, path, nil))
+				if response.Code != test.serviceStatus {
+					t.Errorf("GET %s: status=%d, want %d", path, response.Code, test.serviceStatus)
+				}
+			}
+
+			testimonialResponse := httptest.NewRecorder()
+			handler.ServeHTTP(testimonialResponse, httptest.NewRequest(http.MethodGet, "/assets/testimonials/circle-thrice.png", nil))
+			if testimonialResponse.Code != test.testimonialStatus {
+				t.Errorf("GET testimonial asset: status=%d, want %d", testimonialResponse.Code, test.testimonialStatus)
 			}
 
 			homeResponse := httptest.NewRecorder()
