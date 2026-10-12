@@ -73,7 +73,9 @@ func NewHandlerWithCommerce(cfg config.Config, sender contact.Sender, verifier c
 	mux.Handle("GET /styles.css", cache(http.FileServer(http.FS(static))))
 	mux.Handle("GET /script.js", cache(http.FileServer(http.FS(static))))
 	mux.Handle("GET /assets/", cache(http.FileServer(http.FS(static))))
-	mux.HandleFunc("GET /services", h.servicesPage)
+	if cfg.ServicesEnabled {
+		mux.HandleFunc("GET /services", h.servicesPage)
+	}
 	mux.HandleFunc("GET /shop/vending-signage", h.vendingSignagePage)
 	mux.HandleFunc("GET /shop/blocks/{key}", h.productBlock)
 	mux.HandleFunc("GET /shop/{slug}", h.productPage)
@@ -280,7 +282,7 @@ func (h Handler) requireAccount(w http.ResponseWriter, r *http.Request) (templat
 }
 
 func (h Handler) accountView(w http.ResponseWriter, r *http.Request) templates.AccountView {
-	view := templates.AccountView{CSRFToken: h.ensureCSRF(w, r), Status: string(auth.StatusVisitor)}
+	view := templates.AccountView{CSRFToken: h.ensureCSRF(w, r), Status: string(auth.StatusVisitor), ServicesEnabled: h.config.ServicesEnabled}
 	cookie, err := r.Cookie(sessionCookie)
 	if err != nil {
 		return view
@@ -424,7 +426,7 @@ func (h Handler) renderContact(w http.ResponseWriter, r *http.Request, status in
 
 func (h Handler) render(w http.ResponseWriter, r *http.Request, status int, data templates.ContactFormData) {
 	data.TurnstileSiteKey = h.config.TurnstileSiteKey
-	h.renderComponent(w, r, status, templates.Page(data, h.accountView(w, r)))
+	h.renderComponent(w, r, status, templates.Page(data, h.accountView(w, r), h.config.TestimonialsEnabled))
 }
 
 func (h Handler) renderComponent(w http.ResponseWriter, r *http.Request, status int, component templ.Component) {

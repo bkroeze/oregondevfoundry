@@ -14,7 +14,7 @@ type ContactFormData struct {
 	Status, State, TurnstileSiteKey string
 }
 
-func Page(form ContactFormData, account AccountView) templ.Component {
+func Page(form ContactFormData, account AccountView, testimonialsEnabled bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -43,7 +43,17 @@ func Page(form ContactFormData, account AccountView) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<main id=\"main\"><section id=\"top\" class=\"hero\"><div class=\"hero-copy\"><p class=\"kicker\">Independent software company · Portland, Oregon</p><h1>Build the product.<br><span>Own the outcome.</span></h1><p class=\"hero-intro\">We build useful software products and durable systems—for ourselves and for a small number of ambitious partners.</p><div class=\"hero-actions\"><a class=\"button button-primary\" href=\"#contact\">Bring us the hard problem <span>↗</span></a> <a class=\"text-link\" href=\"#process\">See how we work ↓</a></div></div><div class=\"foundry-machine\" aria-label=\"Abstract modular foundry graphic\" role=\"img\"><div class=\"machine-label\"><span>ODF / 01</span><span>Making useful things</span></div><div class=\"machine-grid\" aria-hidden=\"true\"><i class=\"wide ink\"></i><i class=\"hot\"></i><i class=\"stone\"></i> <i class=\"hot\"></i><i class=\"wide ink\"></i><i class=\"stone\"></i> <i class=\"ink\"></i><i class=\"hot\"></i><i class=\"wide stone\"></i> <i class=\"wide hot\"></i><i class=\"stone\"></i><i class=\"ink\"></i> <i class=\"ink\"></i><i class=\"wide stone\"></i><i class=\"hot\"></i></div><p>Product company<br>+ select engagements</p></div></section><div class=\"ticker\" aria-label=\"Company focus\"><span>Software products</span><b>◆</b><span>Operational systems</span><b>◆</b><span>Selective engagements</span><b>◆</b><span>Built in Oregon</span></div><section id=\"process\" class=\"process-section section-pad\"><div class=\"section-heading\"><p class=\"kicker\">The foundry floor / Our process</p><h2>Good software begins before anyone writes code.</h2><p>We move from ambiguity to an operating system in four deliberate stages. No theater. No handoff into the void.</p></div><ol class=\"process-list\"><li><span class=\"process-number\">01</span><div><h3>Diagnose</h3><p>Find the real constraint. Talk to the people doing the work. Separate symptoms from the problem worth solving.</p></div><span class=\"process-signal\" aria-hidden=\"true\">●</span></li><li><span class=\"process-number\">02</span><div><h3>Design</h3><p>Make the system legible. Reduce risk with prototypes, architecture, and a shared definition of what “working” means.</p></div><span class=\"process-signal\" aria-hidden=\"true\">◆</span></li><li><span class=\"process-number\">03</span><div><h3>Ship</h3><p>Put it in real hands. Build the smallest durable version, release it, and learn from use instead of speculation.</p></div><span class=\"process-signal\" aria-hidden=\"true\">■</span></li><li><span class=\"process-number\">04</span><div><h3>Operate</h3><p>Own what happens next. Measure reality, maintain the system, and improve it without turning every change into drama.</p></div><span class=\"process-signal\" aria-hidden=\"true\">▲</span></li></ol></section><section id=\"work\" class=\"work-section section-pad\"><div class=\"work-statement\"><p class=\"kicker\">Two lines of work / One standard</p><h2>We own products.<br>We take on select engagements.</h2></div><div class=\"work-grid\"><article><span class=\"plate\">A / Products</span><h3>Software we own and operate.</h3><p>Focused products built around recurring, practical needs. Designed as durable businesses—not demos waiting for an exit.</p><span class=\"status\">Portfolio coming into focus</span></article><article><span class=\"plate plate-dark\">B / Engagements</span><h3>Hard operational problems, deliberately chosen.</h3><p>Product strategy, workflow software, AI-enabled systems, and rescue work where clarity matters as much as code.</p><a class=\"text-link\" href=\"#contact\">Tell us what is stuck ↗</a></article></div></section><section id=\"testimonials\" class=\"testimonials-section section-pad\" aria-labelledby=\"testimonials-heading\"><div class=\"section-heading\"><p class=\"kicker\">Built together / In their words</p><h2 id=\"testimonials-heading\">Trusted by people making ambitious things.</h2><p>Close collaboration, fast delivery, and steady support from the first hard question through launch.</p></div><div class=\"testimonial-grid\"><figure class=\"testimonial-card\"><a class=\"testimonial-logo\" href=\"https://www.circlethrice.com/\" aria-label=\"Visit Circle Thrice\"><img src=\"/assets/testimonials/circle-thrice.png\" width=\"216\" height=\"85\" alt=\"Circle Thrice\"></a><blockquote>“Bruce is great, bringing clarity and momentum to difficult ideas without losing sight of what makes them worth building. His thoughtful questions, practical advice, and reliable follow-through make him an invaluable partner.”</blockquote><figcaption><cite>Ivy Bromius</cite><span>Circle Thrice</span></figcaption></figure><figure class=\"testimonial-card\"><a class=\"testimonial-logo\" href=\"https://costumes.oregondevfoundry.com/\" aria-label=\"Visit Costume Tree\"><img src=\"/assets/testimonials/costume-tree-320.png\" width=\"320\" height=\"233\" alt=\"Costume Tree\"></a><blockquote>“Bruce made an entire site for me in a week, taking a complicated process and turning it into something clear, useful, and ready to put to work. He listened closely, moved quickly, and made every decision feel manageable.”</blockquote><figcaption><cite>Jessica Bobillot</cite><span>Costume Tree</span></figcaption></figure><figure class=\"testimonial-card\"><a class=\"testimonial-logo\" href=\"https://productbraid.com/\" aria-label=\"Visit Product Braid\"><img src=\"/assets/testimonials/product-braid.svg\" width=\"64\" height=\"64\" alt=\"Product Braid\"></a><blockquote>“I couldn’t have made Braids without Bruce’s advice and consistent encouragement. He has a rare ability to see both the product and the person building it, then offer exactly the perspective needed to keep moving.”</blockquote><figcaption><cite>Jamie Murphy</cite><span>Product Braid</span></figcaption></figure></div></section><section id=\"about\" class=\"about-section section-pad\"><p class=\"kicker\">Why “Foundry”</p><blockquote>Ideas are cheap ore. The work is applying enough heat, pressure, and discipline to make something that holds.</blockquote><div class=\"about-detail\"><p>Oregon Dev Foundry is an independent software company in Portland, Oregon. We believe the people who build a system should understand the work it changes—and remain accountable after launch.</p><p>This is a working identity and an early site concept. The portfolio, case studies, and deeper company story will arrive as the foundry produces them.</p></div></section><section id=\"contact\" class=\"contact-section\"><div class=\"contact-heading\"><p class=\"kicker\">Have a hard problem?</p><h2>Let’s put it<br>through the foundry.</h2><p>Tell us where the work is stuck. We read every serious inquiry and usually reply within two business days.</p><a class=\"contact-email\" href=\"mailto:hello@oregondevfoundry.com\">Or email hello@oregondevfoundry.com ↗</a></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<main id=\"main\"><section id=\"top\" class=\"hero\"><div class=\"hero-copy\"><p class=\"kicker\">Independent software company · Portland, Oregon</p><h1>Build the product.<br><span>Own the outcome.</span></h1><p class=\"hero-intro\">We build useful software products and durable systems—for ourselves and for a small number of ambitious partners.</p><div class=\"hero-actions\"><a class=\"button button-primary\" href=\"#contact\">Bring us the hard problem <span>↗</span></a> <a class=\"text-link\" href=\"#process\">See how we work ↓</a></div></div><div class=\"foundry-machine\" aria-label=\"Abstract modular foundry graphic\" role=\"img\"><div class=\"machine-label\"><span>ODF / 01</span><span>Making useful things</span></div><div class=\"machine-grid\" aria-hidden=\"true\"><i class=\"wide ink\"></i><i class=\"hot\"></i><i class=\"stone\"></i> <i class=\"hot\"></i><i class=\"wide ink\"></i><i class=\"stone\"></i> <i class=\"ink\"></i><i class=\"hot\"></i><i class=\"wide stone\"></i> <i class=\"wide hot\"></i><i class=\"stone\"></i><i class=\"ink\"></i> <i class=\"ink\"></i><i class=\"wide stone\"></i><i class=\"hot\"></i></div><p>Product company<br>+ select engagements</p></div></section><div class=\"ticker\" aria-label=\"Company focus\"><span>Software products</span><b>◆</b><span>Operational systems</span><b>◆</b><span>Selective engagements</span><b>◆</b><span>Built in Oregon</span></div><section id=\"process\" class=\"process-section section-pad\"><div class=\"section-heading\"><p class=\"kicker\">The foundry floor / Our process</p><h2>Good software begins before anyone writes code.</h2><p>We move from ambiguity to an operating system in four deliberate stages. No theater. No handoff into the void.</p></div><ol class=\"process-list\"><li><span class=\"process-number\">01</span><div><h3>Diagnose</h3><p>Find the real constraint. Talk to the people doing the work. Separate symptoms from the problem worth solving.</p></div><span class=\"process-signal\" aria-hidden=\"true\">●</span></li><li><span class=\"process-number\">02</span><div><h3>Design</h3><p>Make the system legible. Reduce risk with prototypes, architecture, and a shared definition of what “working” means.</p></div><span class=\"process-signal\" aria-hidden=\"true\">◆</span></li><li><span class=\"process-number\">03</span><div><h3>Ship</h3><p>Put it in real hands. Build the smallest durable version, release it, and learn from use instead of speculation.</p></div><span class=\"process-signal\" aria-hidden=\"true\">■</span></li><li><span class=\"process-number\">04</span><div><h3>Operate</h3><p>Own what happens next. Measure reality, maintain the system, and improve it without turning every change into drama.</p></div><span class=\"process-signal\" aria-hidden=\"true\">▲</span></li></ol></section><section id=\"work\" class=\"work-section section-pad\"><div class=\"work-statement\"><p class=\"kicker\">Two lines of work / One standard</p><h2>We own products.<br>We take on select engagements.</h2></div><div class=\"work-grid\"><article><span class=\"plate\">A / Products</span><h3>Software we own and operate.</h3><p>Focused products built around recurring, practical needs. Designed as durable businesses—not demos waiting for an exit.</p><span class=\"status\">Portfolio coming into focus</span></article><article><span class=\"plate plate-dark\">B / Engagements</span><h3>Hard operational problems, deliberately chosen.</h3><p>Product strategy, workflow software, AI-enabled systems, and rescue work where clarity matters as much as code.</p><a class=\"text-link\" href=\"#contact\">Tell us what is stuck ↗</a></article></div></section>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if testimonialsEnabled {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<section id=\"testimonials\" class=\"testimonials-section section-pad\" aria-labelledby=\"testimonials-heading\"><div class=\"section-heading\"><p class=\"kicker\">Built together / In their words</p><h2 id=\"testimonials-heading\">Trusted by people making ambitious things.</h2><p>Close collaboration, fast delivery, and steady support from the first hard question through launch.</p></div><div class=\"testimonial-grid\"><figure class=\"testimonial-card\"><a class=\"testimonial-logo\" href=\"https://www.circlethrice.com/\" aria-label=\"Visit Circle Thrice\"><img src=\"/assets/testimonials/circle-thrice.png\" width=\"216\" height=\"85\" alt=\"Circle Thrice\"></a><blockquote>“Bruce is great, bringing clarity and momentum to difficult ideas without losing sight of what makes them worth building. His thoughtful questions, practical advice, and reliable follow-through make him an invaluable partner.”</blockquote><figcaption><cite>Ivy Bromius</cite><span>Circle Thrice</span></figcaption></figure><figure class=\"testimonial-card\"><a class=\"testimonial-logo\" href=\"https://costumes.oregondevfoundry.com/\" aria-label=\"Visit Costume Tree\"><img src=\"/assets/testimonials/costume-tree-320.png\" width=\"320\" height=\"233\" alt=\"Costume Tree\"></a><blockquote>“Bruce made an entire site for me in a week, taking a complicated process and turning it into something clear, useful, and ready to put to work. He listened closely, moved quickly, and made every decision feel manageable.”</blockquote><figcaption><cite>Jessica Bobillot</cite><span>Costume Tree</span></figcaption></figure><figure class=\"testimonial-card\"><a class=\"testimonial-logo\" href=\"https://productbraid.com/\" aria-label=\"Visit Product Braid\"><img src=\"/assets/testimonials/product-braid.svg\" width=\"64\" height=\"64\" alt=\"Product Braid\"></a><blockquote>“I couldn’t have made Braids without Bruce’s advice and consistent encouragement. He has a rare ability to see both the product and the person building it, then offer exactly the perspective needed to keep moving.”</blockquote><figcaption><cite>Jamie Murphy</cite><span>Product Braid</span></figcaption></figure></div></section>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<section id=\"about\" class=\"about-section section-pad\"><p class=\"kicker\">Why “Foundry”</p><blockquote>Ideas are cheap ore. The work is applying enough heat, pressure, and discipline to make something that holds.</blockquote><div class=\"about-detail\"><p>Oregon Dev Foundry is an independent software company in Portland, Oregon. We believe the people who build a system should understand the work it changes—and remain accountable after launch.</p><p>This is a working identity and an early site concept. The portfolio, case studies, and deeper company story will arrive as the foundry produces them.</p></div></section><section id=\"contact\" class=\"contact-section\"><div class=\"contact-heading\"><p class=\"kicker\">Have a hard problem?</p><h2>Let’s put it<br>through the foundry.</h2><p>Tell us where the work is stuck. We read every serious inquiry and usually reply within two business days.</p><a class=\"contact-email\" href=\"mailto:hello@oregondevfoundry.com\">Or email hello@oregondevfoundry.com ↗</a></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -51,7 +61,7 @@ func Page(form ContactFormData, account AccountView) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</section></main><footer><a class=\"brand footer-brand\" href=\"#top\"><span class=\"brand-mark\" aria-hidden=\"true\"><i></i><i></i><i></i><i></i></span><span>Oregon Dev Foundry</span></a><p>Independent software company · Portland, Oregon</p><p>© <span data-year></span> ODF</p></footer><script src=\"https://unpkg.com/htmx.org@2.0.8\"></script><script src=\"https://challenges.cloudflare.com/turnstile/v0/api.js\" async defer></script><script src=\"/script.js\"></script></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</section></main><footer><a class=\"brand footer-brand\" href=\"#top\"><span class=\"brand-mark\" aria-hidden=\"true\"><i></i><i></i><i></i><i></i></span><span>Oregon Dev Foundry</span></a><p>Independent software company · Portland, Oregon</p><p>© <span data-year></span> ODF</p></footer><script src=\"https://unpkg.com/htmx.org@2.0.8\"></script><script src=\"https://challenges.cloudflare.com/turnstile/v0/api.js\" async defer></script><script src=\"/script.js\"></script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -80,128 +90,128 @@ func ContactForm(form ContactFormData) templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<form id=\"contact-form\" class=\"contact-form\" action=\"/api/contact\" method=\"post\" hx-post=\"/api/contact\" hx-swap=\"outerHTML\" hx-target=\"this\"><div class=\"field-row\"><label>Name <input name=\"name\" autocomplete=\"name\" maxlength=\"100\" required value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<form id=\"contact-form\" class=\"contact-form\" action=\"/api/contact\" method=\"post\" hx-post=\"/api/contact\" hx-swap=\"outerHTML\" hx-target=\"this\"><div class=\"field-row\"><label>Name <input name=\"name\" autocomplete=\"name\" maxlength=\"100\" required value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(form.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/page.templ`, Line: 169, Col: 18}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/page.templ`, Line: 171, Col: 18}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if form.Errors["name"] != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, " aria-invalid=\"true\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " aria-invalid=\"true\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "></label> <label>Email <input name=\"email\" type=\"email\" autocomplete=\"email\" maxlength=\"254\" required value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "></label> <label>Email <input name=\"email\" type=\"email\" autocomplete=\"email\" maxlength=\"254\" required value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(form.Email)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/page.templ`, Line: 182, Col: 19}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/page.templ`, Line: 184, Col: 19}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if form.Errors["email"] != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, " aria-invalid=\"true\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, " aria-invalid=\"true\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "></label></div><label>Company <span>(optional)</span><input name=\"company\" autocomplete=\"organization\" maxlength=\"120\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "></label></div><label>Company <span>(optional)</span><input name=\"company\" autocomplete=\"organization\" maxlength=\"120\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(form.Company)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/page.templ`, Line: 189, Col: 126}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/page.templ`, Line: 191, Col: 126}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\"></label> <label>What are you trying to change? <textarea name=\"message\" rows=\"7\" minlength=\"20\" maxlength=\"5000\" required")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\"></label> <label>What are you trying to change? <textarea name=\"message\" rows=\"7\" minlength=\"20\" maxlength=\"5000\" required")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if form.Errors["message"] != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, " aria-invalid=\"true\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, " aria-invalid=\"true\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, ">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, ">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(form.Message)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/page.templ`, Line: 200, Col: 15}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/page.templ`, Line: 202, Col: 15}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</textarea></label> <label class=\"honeypot\" aria-hidden=\"true\">Website<input name=\"website\" tabindex=\"-1\" autocomplete=\"off\"></label><div class=\"cf-turnstile\" data-sitekey=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</textarea></label> <label class=\"honeypot\" aria-hidden=\"true\">Website<input name=\"website\" tabindex=\"-1\" autocomplete=\"off\"></label><div class=\"cf-turnstile\" data-sitekey=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(form.TurnstileSiteKey)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/page.templ`, Line: 203, Col: 64}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/page.templ`, Line: 205, Col: 64}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" data-action=\"contact\"></div><div class=\"form-actions\"><button class=\"button button-light\" type=\"submit\">Send to the foundry <span>↗</span></button><p class=\"form-status\" data-state=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" data-action=\"contact\"></div><div class=\"form-actions\"><button class=\"button button-light\" type=\"submit\">Send to the foundry <span>↗</span></button><p class=\"form-status\" data-state=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(form.State)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/page.templ`, Line: 206, Col: 49}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/page.templ`, Line: 208, Col: 49}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" aria-live=\"polite\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" aria-live=\"polite\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(form.Status)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/page.templ`, Line: 206, Col: 84}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/page.templ`, Line: 208, Col: 84}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</p></div></form>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</p></div></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

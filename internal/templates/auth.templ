@@ -1,12 +1,13 @@
 package templates
 
 type AccountView struct {
-	Authenticated bool
-	Username      string
-	DisplayName   string
-	Role          string
-	Status        string
-	CSRFToken     string
+	Authenticated   bool
+	Username        string
+	DisplayName     string
+	Role            string
+	Status          string
+	CSRFToken       string
+	ServicesEnabled bool
 }
 
 type LoginData struct {
@@ -60,7 +61,9 @@ templ SiteHeader(account AccountView) {
 		</a>
 		<button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
 		<nav id="site-nav" class="site-nav" aria-label="Primary navigation">
-			<a href="/services">Services</a>
+			if account.ServicesEnabled {
+				<a href="/services">Services</a>
+			}
 			<a href="/#work">Work</a>
 			<a href="/#process">Process</a>
 			<a href="/#about">About</a>

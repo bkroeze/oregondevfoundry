@@ -20,6 +20,7 @@ func TestLoadAppliesDefaultsAndPort(t *testing.T) {
 		"CONTACT_TO": "hello@example.com", "CONTACT_FROM": "Contact <contact@mg.example.com>",
 		"TURNSTILE_SITE_KEY": "test-site", "TURNSTILE_SECRET_KEY": "test-secret",
 		"MAILGUN_REGION": "", "PORT": "9090", "DATABASE_PATH": "", "SESSION_COOKIE_SECURE": "",
+		"SERVICES_ENABLED": "", "TESTIMONIALS_ENABLED": "",
 	}
 	for name, value := range values {
 		t.Setenv(name, value)
@@ -28,8 +29,24 @@ func TestLoadAppliesDefaultsAndPort(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.Address != ":9090" || cfg.MailgunRegion != "us" || cfg.DatabasePath != "data/oregon-dev-foundry.db" || !cfg.SessionCookieSecure {
+	if cfg.Address != ":9090" || cfg.MailgunRegion != "us" || cfg.DatabasePath != "data/oregon-dev-foundry.db" || !cfg.SessionCookieSecure || cfg.ServicesEnabled || cfg.TestimonialsEnabled {
 		t.Fatalf("unexpected config: %#v", cfg)
+	}
+}
+
+func TestLoadFeatureGates(t *testing.T) {
+	for _, name := range []string{"MAILGUN_API_KEY", "MAILGUN_DOMAIN", "CONTACT_TO", "CONTACT_FROM", "TURNSTILE_SITE_KEY", "TURNSTILE_SECRET_KEY"} {
+		t.Setenv(name, "value")
+	}
+	t.Setenv("SERVICES_ENABLED", "true")
+	t.Setenv("TESTIMONIALS_ENABLED", "true")
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !cfg.ServicesEnabled || !cfg.TestimonialsEnabled {
+		t.Fatalf("feature gates not enabled: %#v", cfg)
 	}
 }
 
@@ -56,6 +73,20 @@ func TestLoadRejectsInvalidCookieSecurity(t *testing.T) {
 	t.Setenv("SESSION_COOKIE_SECURE", "sometimes")
 	if _, err := Load(); err == nil || !strings.Contains(err.Error(), "SESSION_COOKIE_SECURE") {
 		t.Fatalf("expected cookie security error, got %v", err)
+	}
+}
+
+func TestLoadRejectsInvalidFeatureGates(t *testing.T) {
+	for _, name := range []string{"MAILGUN_API_KEY", "MAILGUN_DOMAIN", "CONTACT_TO", "CONTACT_FROM", "TURNSTILE_SITE_KEY", "TURNSTILE_SECRET_KEY"} {
+		t.Setenv(name, "value")
+	}
+	for _, name := range []string{"SERVICES_ENABLED", "TESTIMONIALS_ENABLED"} {
+		t.Run(name, func(t *testing.T) {
+			t.Setenv(name, "sometimes")
+			if _, err := Load(); err == nil || !strings.Contains(err.Error(), name) {
+				t.Fatalf("expected %s error, got %v", name, err)
+			}
+		})
 	}
 }
 

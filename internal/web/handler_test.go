@@ -44,7 +44,7 @@ func testStore(t *testing.T) *auth.Store {
 
 func testHandler(t *testing.T, sender *fakeSender, verifier fakeVerifier) http.Handler {
 	t.Helper()
-	return NewHandler(config.Config{TurnstileSiteKey: "site-key"}, sender, verifier, testStore(t))
+	return NewHandler(config.Config{TurnstileSiteKey: "site-key", ServicesEnabled: true, TestimonialsEnabled: true}, sender, verifier, testStore(t))
 }
 
 func TestPublicRoutes(t *testing.T) {
@@ -74,6 +74,48 @@ func TestPublicRoutes(t *testing.T) {
 			handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, test.path, nil))
 			if response.Code != http.StatusOK || !strings.Contains(response.Body.String(), test.contains) {
 				t.Fatalf("GET %s: status=%d body=%q", test.path, response.Code, response.Body.String())
+			}
+		})
+	}
+}
+
+func TestFeatureGates(t *testing.T) {
+	for _, test := range []struct {
+		name                string
+		config              config.Config
+		serviceStatus       int
+		servicesVisible     bool
+		testimonialsVisible bool
+	}{
+		{name: "disabled", config: config.Config{}, serviceStatus: http.StatusNotFound},
+		{
+			name: "enabled",
+			config: config.Config{
+				ServicesEnabled:     true,
+				TestimonialsEnabled: true,
+			},
+			serviceStatus:       http.StatusOK,
+			servicesVisible:     true,
+			testimonialsVisible: true,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			handler := NewHandler(test.config, &fakeSender{}, fakeVerifier{}, testStore(t))
+
+			serviceResponse := httptest.NewRecorder()
+			handler.ServeHTTP(serviceResponse, httptest.NewRequest(http.MethodGet, "/services", nil))
+			if serviceResponse.Code != test.serviceStatus {
+				t.Fatalf("GET /services: status=%d, want %d", serviceResponse.Code, test.serviceStatus)
+			}
+
+			homeResponse := httptest.NewRecorder()
+			handler.ServeHTTP(homeResponse, httptest.NewRequest(http.MethodGet, "/", nil))
+			body := homeResponse.Body.String()
+			if got := strings.Contains(body, `href="/services">Services</a>`); got != test.servicesVisible {
+				t.Fatalf("services navigation visible = %t, want %t", got, test.servicesVisible)
+			}
+			if got := strings.Contains(body, `id="testimonials"`); got != test.testimonialsVisible {
+				t.Fatalf("testimonials visible = %t, want %t", got, test.testimonialsVisible)
 			}
 		})
 	}

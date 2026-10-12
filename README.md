@@ -52,6 +52,8 @@ $EDITOR .env
 | `IMAGE` | No | Image tag used by the Docker recipes. |
 | `DATABASE_PATH` | No | SQLite path, default `data/oregon-dev-foundry.db`; the parent directory is created with user-only permissions. |
 | `SESSION_COOKIE_SECURE` | No | `true` by default. Set `false` only for local plain-HTTP development. |
+| `SERVICES_ENABLED` | No | Registers `GET /services` and shows its primary-navigation link when `true`; default `false`. |
+| `TESTIMONIALS_ENABLED` | No | Renders the homepage testimonials section when `true`; default `false`. |
 
 Mailgun, Turnstile, and Stripe secrets remain server-side. Stripe configuration is optional as a group for local development without checkout; checkout routes return unavailable until all four checkout values are configured. Production Mailgun must contain active `order-status` and `purchase-account-invitation` templates using the variables sent by `internal/notifications`.
 
@@ -112,7 +114,8 @@ just check      # generation consistency, format, tests, vet, and build
 
 | Method and path | Purpose |
 | --- | --- |
-| `GET /` | Render the public site, including process, work, testimonials, company context, and contact sections. |
+| `GET /` | Render the public site, including process, work, company context, contact, and testimonials when `TESTIMONIALS_ENABLED=true`. |
+| `GET /services` | Render public services when `SERVICES_ENABLED=true`; otherwise the route is not registered. |
 | `GET /login` | Render username/password login and Visitor status. |
 | `POST /login` | Validate CSRF and credentials, then start a session. |
 | `POST /logout` | Validate CSRF and end the current session. |

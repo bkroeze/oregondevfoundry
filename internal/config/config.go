@@ -24,6 +24,8 @@ type Config struct {
 	TurnstileSecretKey   string
 	DatabasePath         string
 	SessionCookieSecure  bool
+	ServicesEnabled      bool
+	TestimonialsEnabled  bool
 	StripeSecretKey      string
 	StripePublishableKey string
 	StripeWebhookSecret  string
@@ -59,6 +61,20 @@ func Load() (Config, error) {
 			return Config{}, errors.New("SESSION_COOKIE_SECURE must be true or false")
 		}
 		cfg.SessionCookieSecure = secure
+	}
+	if value := strings.TrimSpace(os.Getenv("SERVICES_ENABLED")); value != "" {
+		enabled, err := strconv.ParseBool(value)
+		if err != nil {
+			return Config{}, errors.New("SERVICES_ENABLED must be true or false")
+		}
+		cfg.ServicesEnabled = enabled
+	}
+	if value := strings.TrimSpace(os.Getenv("TESTIMONIALS_ENABLED")); value != "" {
+		enabled, err := strconv.ParseBool(value)
+		if err != nil {
+			return Config{}, errors.New("TESTIMONIALS_ENABLED must be true or false")
+		}
+		cfg.TestimonialsEnabled = enabled
 	}
 
 	port := defaultPort
