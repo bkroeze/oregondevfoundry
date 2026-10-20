@@ -36,6 +36,51 @@ func encodeTestImage(t *testing.T, format string, width, height int) []byte {
 	return encoded.Bytes()
 }
 
+func encodeOrientedJPEG(t *testing.T, orientation int) []byte {
+	t.Helper()
+	picture := image.NewNRGBA(image.Rect(0, 0, 80, 60))
+	colors := []color.NRGBA{
+		{R: 240, A: 255},
+		{G: 240, A: 255},
+		{B: 240, A: 255},
+		{R: 240, G: 240, A: 255},
+	}
+	for y := 0; y < 60; y++ {
+		for x := 0; x < 80; x++ {
+			picture.SetNRGBA(x, y, colors[(y/30)*2+x/40])
+		}
+	}
+	var encoded bytes.Buffer
+	if err := jpeg.Encode(&encoded, picture, &jpeg.Options{Quality: 100}); err != nil {
+		t.Fatal(err)
+	}
+	exif := []byte{
+		0xff, 0xe1, 0x00, 0x22,
+		'E', 'x', 'i', 'f', 0, 0,
+		'I', 'I', 42, 0, 8, 0, 0, 0,
+		1, 0,
+		0x12, 0x01, 3, 0, 1, 0, 0, 0, byte(orientation), 0, 0, 0,
+		0, 0, 0, 0,
+	}
+	return append(append([]byte{}, encoded.Bytes()[:2]...), append(exif, encoded.Bytes()[2:]...)...)
+}
+
+func dominantColorAt(picture image.Image, x, y int) string {
+	r, g, b, _ := picture.At(x, y).RGBA()
+	switch {
+	case r > g*2 && r > b*2:
+		return "red"
+	case g > r*2 && g > b*2:
+		return "green"
+	case b > r*2 && b > g*2:
+		return "blue"
+	case r > b*2 && g > b*2:
+		return "yellow"
+	default:
+		return "unknown"
+	}
+}
+
 func TestImportNormalizesResizesAndDoesNotUpscale(t *testing.T) {
 	for _, test := range []struct {
 		name, format          string
@@ -80,6 +125,48 @@ func TestImportNormalizesResizesAndDoesNotUpscale(t *testing.T) {
 			files, err := os.ReadDir(directory)
 			if err != nil || len(files) != 1 || files[0].Name() != result.Filename {
 				t.Fatalf("temporary or duplicate files left behind: %v, %v", files, err)
+			}
+		})
+	}
+}
+
+func TestImportAppliesJPEGOrientation(t *testing.T) {
+	for _, test := range []struct {
+		orientation      int
+		width, height    int
+		cornerColorNames [4]string
+	}{
+		{2, 80, 60, [4]string{"green", "red", "yellow", "blue"}},
+		{3, 80, 60, [4]string{"yellow", "blue", "green", "red"}},
+		{4, 80, 60, [4]string{"blue", "yellow", "red", "green"}},
+		{5, 60, 80, [4]string{"red", "blue", "green", "yellow"}},
+		{6, 60, 80, [4]string{"blue", "red", "yellow", "green"}},
+		{7, 60, 80, [4]string{"yellow", "green", "blue", "red"}},
+		{8, 60, 80, [4]string{"green", "yellow", "red", "blue"}},
+	} {
+		t.Run(string(rune('0'+test.orientation)), func(t *testing.T) {
+			directory := t.TempDir()
+			result, err := Import(directory, bytes.NewReader(encodeOrientedJPEG(t, test.orientation)))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if result.Width != test.width || result.Height != test.height {
+				t.Fatalf("result dimensions = %dx%d, want %dx%d", result.Width, result.Height, test.width, test.height)
+			}
+			file, err := os.Open(filepath.Join(directory, result.Filename))
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer file.Close()
+			picture, err := jpeg.Decode(file)
+			if err != nil {
+				t.Fatal(err)
+			}
+			points := [4]image.Point{{test.width / 4, test.height / 4}, {test.width * 3 / 4, test.height / 4}, {test.width / 4, test.height * 3 / 4}, {test.width * 3 / 4, test.height * 3 / 4}}
+			for index, point := range points {
+				if got := dominantColorAt(picture, point.X, point.Y); got != test.cornerColorNames[index] {
+					t.Fatalf("corner %d color = %s, want %s", index, got, test.cornerColorNames[index])
+				}
 			}
 		})
 	}
