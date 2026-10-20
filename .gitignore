@@ -2,3 +2,4 @@
 .env
 bin/
 data/*.db*
+data/media/

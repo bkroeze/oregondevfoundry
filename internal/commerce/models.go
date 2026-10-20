@@ -49,6 +49,16 @@ type Product struct {
 	ShippingOptions []ShippingOption
 }
 
+type ProductImage struct {
+	ID         int64
+	ProductID  int64
+	SKUID      int64
+	AddonSKUID int64
+	Filename   string
+	Width      int
+	Height     int
+}
+
 type SKU struct {
 	ID            int64
 	ProductID     int64

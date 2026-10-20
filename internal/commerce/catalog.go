@@ -60,6 +60,38 @@ func (s *Store) UpdateProduct(ctx context.Context, id int64, p ProductParams) (P
 	return s.ProductByID(ctx, id)
 }
 
+func (s *Store) SetProductActive(ctx context.Context, productID int64, active bool) error {
+	if productID <= 0 {
+		return fmt.Errorf("%w: product id is required", ErrInvalidInput)
+	}
+	result, err := s.db.ExecContext(ctx, `UPDATE commerce_products SET active=?, updated_at=? WHERE id=?`, active, nowUnix(s), productID)
+	if err != nil {
+		return fmt.Errorf("set product status: %w", err)
+	}
+	if count, err := result.RowsAffected(); err != nil {
+		return err
+	} else if count == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func (s *Store) SetSKUActive(ctx context.Context, productID, skuID int64, active bool) error {
+	if productID <= 0 || skuID <= 0 {
+		return fmt.Errorf("%w: product and SKU ids are required", ErrInvalidInput)
+	}
+	result, err := s.db.ExecContext(ctx, `UPDATE commerce_skus SET active=?, updated_at=? WHERE product_id=? AND id=?`, active, nowUnix(s), productID, skuID)
+	if err != nil {
+		return fmt.Errorf("set SKU status: %w", err)
+	}
+	if count, err := result.RowsAffected(); err != nil {
+		return err
+	} else if count == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
 func (s *Store) ProductByID(ctx context.Context, id int64) (Product, error) {
 	if id <= 0 {
 		return Product{}, fmt.Errorf("%w: product id is required", ErrInvalidInput)

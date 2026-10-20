@@ -7,6 +7,7 @@ require (
 	github.com/mailgun/mailgun-go/v4 v4.23.0
 	github.com/stripe/stripe-go/v82 v82.5.1
 	golang.org/x/crypto v0.41.0
+	golang.org/x/image v0.30.0
 	modernc.org/sqlite v1.39.1
 )
 

@@ -109,3 +109,40 @@ mountEmbeddedCheckout();
 
 const commerceError = document.querySelector('[data-commerce-error]');
 commerceError?.focus();
+
+document.querySelectorAll('[data-signage]').forEach((configurator) => {
+  const image = configurator.querySelector('[data-signage-image]');
+  const empty = configurator.querySelector('[data-signage-empty]');
+  const status = configurator.querySelector('[data-signage-status]');
+  const stand = configurator.querySelector('[data-signage-stand]');
+  const updatePreview = () => {
+    const size = configurator.querySelector('[data-signage-size]:checked');
+    const withStand = stand.checked && !stand.disabled;
+    const src = size ? (withStand ? size.dataset.standImage : size.dataset.image) : '';
+    const description = size
+      ? `${size.dataset.name} ${withStand ? 'with' : 'without'} wooden stand`
+      : 'the selected configuration';
+    image.hidden = true;
+    image.removeAttribute('src');
+    image.alt = `Saved photograph of ${description}`;
+    empty.hidden = Boolean(src);
+    empty.textContent = 'No saved photograph is available for this configuration yet.';
+    status.textContent = src
+      ? `Saved photograph: ${description}. Not a personalized proof.`
+      : `No saved photograph for ${description}.`;
+    if (src) {
+      image.src = src;
+      image.hidden = false;
+    }
+  };
+  image.addEventListener('error', () => {
+    image.hidden = true;
+    empty.hidden = false;
+    empty.textContent = 'The saved photograph could not be loaded. Please contact us for a preview.';
+    status.textContent = 'Saved photograph unavailable.';
+  });
+  configurator.addEventListener('change', (event) => {
+    if (event.target.matches('[data-signage-size], [data-signage-stand]')) updatePreview();
+  });
+  updatePreview();
+});

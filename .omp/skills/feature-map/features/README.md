@@ -25,7 +25,7 @@ This map routes user-visible behavior to a few current source anchors and a beha
 | `account-access` | login, logout, session, profile, role navigation, login limiting | `GET, POST /login`, `POST /logout`, `GET /profile`, `GET /client`, `GET /admin` | [`account-access.md`](./account-access.md) |
 | `one-time-purchase` | product, cart, one-time checkout, inventory reservation, order, referral | `GET /shop/{slug}`, `GET /cart`, `POST /cart/items...`, `POST /checkout`, checkout return and webhook | [`one-time-purchase.md`](./one-time-purchase.md) |
 | `monthly-subscription` | membership, recurring checkout, subscription fulfillment | `POST /subscriptions/checkout`, checkout return and webhook | [`monthly-subscription.md`](./monthly-subscription.md) |
-| `admin-catalog` | admin product, SKU, add-on, price, inventory, shipping option | `GET, POST /admin/products...` | [`admin-catalog.md`](./admin-catalog.md) |
+| `admin-catalog` | admin product, SKU, add-on, price, inventory, shipping, image import, availability, slate signage preview | `GET, POST /admin/products...`, `/admin/catalog...`, `GET /shop/vending-signage` | [`admin-catalog.md`](./admin-catalog.md) |
 
 ## Coverage boundary
 

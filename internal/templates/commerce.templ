@@ -46,6 +46,11 @@ type ShippingView struct {
 	DeleteAction string
 }
 
+type ProductImageView struct {
+	URL   string
+	Label string
+}
+
 type ProductView struct {
 	ID              string
 	Slug            string
@@ -65,6 +70,7 @@ type ProductView struct {
 	SKUs            []SKUView
 	ShippingOptions []ShippingView
 	EditURL         string
+	Images          []ProductImageView
 }
 
 type ProductPageData struct {
@@ -248,6 +254,16 @@ templ ProductBlock(data ProductBlockData) {
 			}
 			if data.Product.Description != "" {
 				<p class="commerce-product-description">{ data.Product.Description }</p>
+			}
+			if len(data.Product.Images) > 0 {
+				<div class="catalog-product-images">
+					for _, image := range data.Product.Images {
+						<figure>
+							<img src={ image.URL } alt={ image.Label } loading="lazy" width="600"/>
+							<figcaption>{ image.Label }</figcaption>
+						</figure>
+					}
+				</div>
 			}
 			<p class="commerce-product-price">
 				<span>{ data.Product.Price }</span>
