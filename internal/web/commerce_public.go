@@ -22,6 +22,9 @@ func (h Handler) productPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	data := h.productPageData(w, r, product)
+	if !h.loadProductImages(w, r, product, &data.Product) {
+		return
+	}
 	h.renderComponent(w, r, http.StatusOK, templates.ProductPage(data))
 }
 
@@ -36,6 +39,9 @@ func (h Handler) productBlock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	page := h.productPageData(w, r, product)
+	if !h.loadProductImages(w, r, product, &page.Product) {
+		return
+	}
 	h.renderComponent(w, r, http.StatusOK, templates.ProductBlock(templates.ProductBlockData{
 		Product: page.Product, Action: page.Action, CSRFToken: page.CSRFToken,
 		ReferralToken: page.ReferralToken, Name: page.Name, Email: page.Email,
@@ -61,6 +67,47 @@ func (h Handler) productPageData(w http.ResponseWriter, r *http.Request, product
 		}
 	}
 	return data
+}
+
+func (h Handler) loadProductImages(w http.ResponseWriter, r *http.Request, product commerce.Product, view *templates.ProductView) bool {
+	images, err := h.commerce.ListProductImages(r.Context(), product.ID)
+	if err != nil {
+		h.commerceError(w, "load product images", err)
+		return false
+	}
+	for _, image := range images {
+		label := product.Name
+		if image.SKUID != 0 {
+			primary, ok := activeImageSKU(product, image.SKUID)
+			if !ok {
+				continue
+			}
+			label += " — " + primary.Name
+		}
+		if image.AddonSKUID != 0 {
+			addon, ok := activeImageSKU(product, image.AddonSKUID)
+			if !ok {
+				continue
+			}
+			label += " + " + addon.Name
+		}
+		view.Images = append(view.Images, templates.ProductImageView{URL: "/media/products/" + image.Filename, Label: label})
+	}
+	return true
+}
+
+func activeImageSKU(product commerce.Product, id int64) (commerce.SKU, bool) {
+	for _, sku := range product.SKUs {
+		if sku.ID == id && sku.Active {
+			return sku, true
+		}
+	}
+	for _, sku := range product.Addons {
+		if sku.ID == id && sku.Active {
+			return sku, true
+		}
+	}
+	return commerce.SKU{}, false
 }
 
 func (h Handler) currentUser(r *http.Request) (auth.User, bool) {

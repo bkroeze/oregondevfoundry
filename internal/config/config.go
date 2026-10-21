@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -23,6 +24,7 @@ type Config struct {
 	TurnstileSiteKey     string
 	TurnstileSecretKey   string
 	DatabasePath         string
+	MediaDir             string
 	SessionCookieSecure  bool
 	ServicesEnabled      bool
 	TestimonialsEnabled  bool
@@ -44,6 +46,7 @@ func Load() (Config, error) {
 		TurnstileSiteKey:     strings.TrimSpace(os.Getenv("TURNSTILE_SITE_KEY")),
 		TurnstileSecretKey:   strings.TrimSpace(os.Getenv("TURNSTILE_SECRET_KEY")),
 		DatabasePath:         strings.TrimSpace(os.Getenv("DATABASE_PATH")),
+		MediaDir:             strings.TrimSpace(os.Getenv("MEDIA_DIR")),
 		SessionCookieSecure:  true,
 		StripeSecretKey:      strings.TrimSpace(os.Getenv("STRIPE_SECRET_KEY")),
 		StripePublishableKey: strings.TrimSpace(os.Getenv("STRIPE_PUBLISHABLE_KEY")),
@@ -54,6 +57,9 @@ func Load() (Config, error) {
 
 	if cfg.DatabasePath == "" {
 		cfg.DatabasePath = "data/oregon-dev-foundry.db"
+	}
+	if cfg.MediaDir == "" {
+		cfg.MediaDir = filepath.Join(filepath.Dir(cfg.DatabasePath), "media")
 	}
 	if value := strings.TrimSpace(os.Getenv("SESSION_COOKIE_SECURE")); value != "" {
 		secure, err := strconv.ParseBool(value)

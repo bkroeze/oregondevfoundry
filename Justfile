@@ -53,6 +53,21 @@ users operation="list" username="" display_name="" role="user" has_purchases="fa
       *) printf 'error: "operation must be list, show, create, update, or delete"\n' ; exit 2 ;;
     esac
 
+# Change a user's password with hidden entry and confirmation.
+password username:
+    #!/usr/bin/env bash
+    username={{ quote(username) }}
+    trap 'unset password confirmation username' EXIT
+    read -r -s -p "New password for $username: " password
+    printf '\n'
+    read -r -s -p "Confirm new password: " confirmation
+    printf '\n'
+    if [[ "$password" != "$confirmation" ]]; then
+      printf 'error: passwords do not match\n' >&2
+      exit 1
+    fi
+    printf '%s\n' "$password" | exec go run ./cmd/users update --username "$username" --password-stdin
+
 # Run all tests; injected fakes ensure tests never send mail.
 test:
     go test -race ./...

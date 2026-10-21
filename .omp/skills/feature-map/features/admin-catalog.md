@@ -7,11 +7,14 @@ Administrators manage products, primary and add-on SKUs, prices, finite or unlim
 - `GET /admin/shop` aliases the admin commerce landing page.
 - `GET /admin/products`, `GET /admin/products/new`, and `GET /admin/products/{id}` show catalog management surfaces.
 - `POST /admin/products...` creates or updates products, SKUs, add-ons, inventory, pricing, and shipping options; dedicated `/delete` posts deactivate SKUs and shipping options.
+- `GET /admin/catalog` is the catalog-wide image/availability landing. `POST /admin/catalog/{id}/images`, `/status`, and `/skus/{skuID}/status` import previews or toggle availability.
+- `/shop/vending-signage` is a service-gated, catalog-backed slate preview with title (20 characters), destination URL (200 characters), and saved primary/add-on image selection; it does not submit an order.
 
 ## Primary source path
 
 - **Entry:** `internal/web/admin_commerce.go::Handler.adminProducts` — loads the admin catalog and routes agents to the colocated product, SKU, and shipping handlers.
 - **Effect boundary:** `internal/commerce/catalog.go::Store.UpdateSKU` — representative durable catalog mutation; adjacent `Store` methods in the same file own products, add-ons, and shipping options.
+- **Images:** `internal/web/admin_catalog.go::Handler.adminCatalogImage` — bounded authenticated multipart import through `internal/media.Import`, followed by slot ownership validation/persistence.
 
 ## Variants and gates
 
@@ -27,12 +30,16 @@ Administrators manage products, primary and add-on SKUs, prices, finite or unlim
 - SKU price and inventory changes affect public rendering and subsequent cart validation.
 - SKU and shipping deletion handlers deactivate records rather than physically deleting them.
 - Inactive shipping remains visible to administrators but is absent from public product views.
+- Imports accept JPEG/PNG only (8 MiB, 20 MP), strip metadata, resize to maximum edge 1200 without upscaling, and use immutable content-hash filenames in `MEDIA_DIR`. Public serving confines access to that directory.
+- Signage seeds once at service-enabled startup. Its zero-inventory SKUs prevent checkout, while preview availability uses `Active` only; saved previews match the exact size/stand combination. Existing signage products and later admin changes are never overwritten.
 
 ## Verification
 
 - **Focused check:** `go test ./internal/web -run '^(TestAdminProductManagementRequiresAdmin|TestProductViewHidesInactiveShippingFromPublic)$'`
 - **Runtime path:** sign in as a disposable admin, create a one-time product and primary SKU, set finite inventory and shipping, inspect the public product, then deactivate the shipping option.
 - **Evidence:** a non-admin receives access denied; the admin changes persist; public price, stock, and shipping reflect active catalog state while inactive records remain visible in admin history.
+- **Image check:** `go test ./internal/media ./internal/commerce ./internal/web`; browser-smoke `/admin/catalog` uploads, resized dimensions, enabled/disabled states, generic product galleries, and signage size/stand preview swapping.
+- Upload separate no-stand and stand images for each signage primary SKU. Product-default images are shown in generic product galleries, not substituted for exact signage previews.
 
 ## Gotchas
 

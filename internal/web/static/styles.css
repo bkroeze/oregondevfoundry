@@ -252,12 +252,21 @@ footer p { margin: 0; }
 .product-price { margin: 0; padding: .8rem 1rem; display: inline-block; border: 2px solid var(--ink); background: white; font: .8rem "DM Mono", monospace; text-transform: uppercase; }
 .product-price strong { font-size: 1.15rem; }
 .product-preview { position: relative; }
-.qr-mock { padding: clamp(1.25rem, 3vw, 2rem); border: 2px solid var(--ink); background: #faf7f0; box-shadow: 14px 14px 0 var(--hot); transform: rotate(-2deg); }
-.qr-headline { margin: 0 0 1rem; font: 500 .75rem "DM Mono", monospace; text-transform: uppercase; letter-spacing: .05em; }
-.qr-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; aspect-ratio: 1; padding: .75rem; background: white; border: 2px solid var(--ink); }
-.qr-grid i { display: block; background: transparent; }
-.qr-grid i.on { background: var(--ink); }
-.qr-url { margin: 1rem 0 0; padding-top: .8rem; border-top: 1px solid var(--ink); text-align: center; font: .7rem "DM Mono", monospace; word-break: break-all; }
+.signage-preview { align-self: start; padding: clamp(1.25rem, 3vw, 2rem); border: 2px solid var(--ink); background: #faf7f0; }
+.signage-preview img { display: block; width: 100%; height: auto; }
+.signage-preview [hidden] { display: none; }
+.signage-caption { color: var(--muted); font-size: .85rem; }
+.signage-fields { display: grid; gap: .75rem; }
+.signage-fields label { font-weight: 600; }
+.signage-fields label span { font-weight: 400; }
+.signage-fields input { width: 100%; min-width: 0; min-height: 48px; padding: .75rem; border: 2px solid var(--ink); background: white; color: var(--ink); font: inherit; }
+.signage-fields input:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.signage-fields p { color: var(--muted); }
+.option-grid label:has(input:disabled) { background: #eeeae2; color: var(--muted); cursor: not-allowed; }
+.catalog-product-images { display: grid; gap: 1rem; margin-block: 1rem; }
+.catalog-product-images figure { margin: 0; }
+.catalog-product-images img { display: block; max-width: 100%; height: auto; }
+.catalog-product-images figcaption { margin-top: .5rem; color: var(--muted); }
 
 /* Product: AI Concierge report mock */
 .report-mock { max-width: 100%; padding: clamp(1.25rem, 3vw, 2rem); border: 2px solid var(--ink); background: #faf7f0; box-shadow: 14px 14px 0 var(--blue); transform: rotate(2deg); }

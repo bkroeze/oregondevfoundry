@@ -63,6 +63,14 @@ func NewHandler(cfg config.Config, sender contact.Sender, verifier contact.Verif
 }
 
 func NewHandlerWithCommerce(cfg config.Config, sender contact.Sender, verifier contact.Verifier, users *auth.Store, store *commerce.Store, gateway payment.Gateway, mailer notifications.Mailer) http.Handler {
+	if cfg.ServicesEnabled {
+		if err := store.EnsureSignageCatalog(context.Background()); err != nil {
+			slog.Error("initialize signage catalog", "error", err)
+			return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				http.Error(w, "application catalog is unavailable", http.StatusInternalServerError)
+			})
+		}
+	}
 	h := Handler{config: cfg, sender: sender, verifier: verifier, users: users, commerce: store, payments: gateway, mailer: mailer, loginLimiter: newLoginLimiter(4)}
 	static, _ := fs.Sub(assets, "static")
 	mux := http.NewServeMux()
@@ -72,6 +80,7 @@ func NewHandlerWithCommerce(cfg config.Config, sender contact.Sender, verifier c
 	mux.HandleFunc("POST /api/contact", h.submitContact)
 	mux.Handle("GET /styles.css", cache(http.FileServer(http.FS(static))))
 	mux.Handle("GET /script.js", cache(http.FileServer(http.FS(static))))
+	mux.HandleFunc("GET /media/products/{filename}", h.productImage)
 	if cfg.TestimonialsEnabled {
 		mux.Handle("GET /assets/testimonials/", cache(http.FileServer(http.FS(static))))
 	}
@@ -105,6 +114,10 @@ func NewHandlerWithCommerce(cfg config.Config, sender contact.Sender, verifier c
 	mux.HandleFunc("GET /client", h.clientProfile)
 	mux.HandleFunc("GET /admin", h.adminLanding)
 	mux.HandleFunc("GET /admin/shop", h.adminProducts)
+	mux.HandleFunc("GET /admin/catalog", h.adminCatalog)
+	mux.HandleFunc("POST /admin/catalog/{id}/images", h.adminCatalogImage)
+	mux.HandleFunc("POST /admin/catalog/{id}/status", h.adminCatalogStatus)
+	mux.HandleFunc("POST /admin/catalog/{id}/skus/{skuID}/status", h.adminCatalogSKUStatus)
 	mux.HandleFunc("GET /admin/users", h.adminUsers)
 	mux.HandleFunc("GET /admin/users/new", h.newAdminUser)
 	mux.HandleFunc("POST /admin/users", h.createAdminUser)
@@ -148,10 +161,6 @@ func (h Handler) page(w http.ResponseWriter, r *http.Request) {
 
 func (h Handler) servicesPage(w http.ResponseWriter, r *http.Request) {
 	h.renderComponent(w, r, http.StatusOK, templates.ServicesPage(h.accountView(w, r)))
-}
-
-func (h Handler) vendingSignagePage(w http.ResponseWriter, r *http.Request) {
-	h.renderComponent(w, r, http.StatusOK, templates.VendingSignagePage(h.accountView(w, r)))
 }
 
 func (h Handler) aiConciergePage(w http.ResponseWriter, r *http.Request) {

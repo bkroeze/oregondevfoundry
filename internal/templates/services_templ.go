@@ -45,7 +45,7 @@ func ServicesPage(account AccountView) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<main id=\"main\" class=\"services-main\"><section class=\"services-hero section-pad\"><div class=\"section-heading\"><p class=\"kicker\">The catalog / Services</p><h1>Useful services, built to be used.</h1><p>We turn recurring, practical problems into durable service offerings—starting with the people who sell face to face.</p></div><div class=\"services-grid\"><article class=\"service-card service-card-featured\"><span class=\"plate\">Artists, makers &amp; growers · Market vendors</span><h3>Custom QR code signage</h3><p>Booth and table signs that send customers straight to your shop, menu, payment link, or mailing list. Weatherable prints, honest pricing, no app required—scan and go.</p><ul class=\"market-list\"><li>Farmers markets</li><li>Art &amp; craft fairs</li><li>Pop-up shops</li><li>Nursery &amp; grower tables</li><li>Food &amp; drink vendors</li></ul><a class=\"button button-primary\" href=\"/shop/vending-signage\">Configure vending signage <span>↗</span></a></article><article class=\"service-card service-card-soon\"><span class=\"plate plate-dark\">In the works</span><h3>More vendor tools</h3><p>Inventory sheets, market-day checklists, and simple storefronts—shaped by what real vendors keep asking us for.</p><a class=\"status\" href=\"/#contact\">Tell us what you need <span>↗</span></a></article></div></section></main>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<main id=\"main\" class=\"services-main\"><section class=\"services-hero section-pad\"><div class=\"section-heading\"><p class=\"kicker\">The catalog / Services</p><h1>Useful services, built to be used.</h1><p>We turn recurring, practical problems into durable service offerings—starting with the people who sell face to face.</p></div><div class=\"services-grid\"><article class=\"service-card service-card-featured\"><span class=\"plate\">Artists, makers &amp; growers · Market vendors</span><h3>Custom QR code signage</h3><p>Slate tabletop displays for your shop, menu, or payment destination, with an optional wooden stand. Explore the available sizes and saved product photos, then contact us to discuss your sign.</p><ul class=\"market-list\"><li>Farmers markets</li><li>Art &amp; craft fairs</li><li>Pop-up shops</li><li>Nursery &amp; grower tables</li><li>Food &amp; drink vendors</li></ul><a class=\"button button-primary\" href=\"/shop/vending-signage\">Configure vending signage <span>↗</span></a></article><article class=\"service-card service-card-soon\"><span class=\"plate plate-dark\">In the works</span><h3>More vendor tools</h3><p>Inventory sheets, market-day checklists, and simple storefronts—shaped by what real vendors keep asking us for.</p><a class=\"status\" href=\"/#contact\">Tell us what you need <span>↗</span></a></article></div></section></main>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -61,7 +61,26 @@ func ServicesPage(account AccountView) templ.Component {
 	})
 }
 
-func VendingSignagePage(account AccountView) templ.Component {
+type SignageOption struct {
+	ID            string
+	Name          string
+	Active        bool
+	Selected      bool
+	ImageURL      string
+	StandImageURL string
+}
+
+type SignagePageData struct {
+	Account     AccountView
+	Options     []SignageOption
+	StandID     string
+	StandActive bool
+	Available   bool
+	ImageURL    string
+	ImageAlt    string
+}
+
+func VendingSignagePage(data SignagePageData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -86,7 +105,7 @@ func VendingSignagePage(account AccountView) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = PageHead("Custom QR code vending signage").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = PageHead("Slate vending signage").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -94,11 +113,207 @@ func VendingSignagePage(account AccountView) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = SiteHeader(account).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = SiteHeader(data.Account).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<main id=\"main\" class=\"product-main\"><section class=\"product-hero section-pad\"><div class=\"product-layout\"><div class=\"product-copy\"><p class=\"kicker\">Market vendors / Signage</p><h1>Custom QR<br>code signage.</h1><p class=\"product-intro\">A sign that does the talking when the line gets long. Point shoppers at your shop, menu, payment link, or mailing list—printed durable, priced fair, and built to survive a market day.</p><p class=\"product-price\">From <strong>$28</strong> · ships in 3–5 business days</p></div><div class=\"product-preview\" aria-label=\"Example QR code sign\" role=\"img\"><div class=\"qr-mock\"><p class=\"qr-headline\">Scan to shop</p><div class=\"qr-grid\" aria-hidden=\"true\"><i></i><i class=\"on\"></i><i class=\"on\"></i><i></i><i class=\"on\"></i><i></i><i class=\"on\"></i><i></i> <i class=\"on\"></i><i></i><i class=\"on\"></i><i class=\"on\"></i><i></i><i class=\"on\"></i><i></i><i class=\"on\"></i> <i></i><i class=\"on\"></i><i></i><i></i><i class=\"on\"></i><i class=\"on\"></i><i></i><i class=\"on\"></i> <i class=\"on\"></i><i></i><i class=\"on\"></i><i class=\"on\"></i><i></i><i></i><i class=\"on\"></i><i></i> <i></i><i class=\"on\"></i><i></i><i class=\"on\"></i><i></i><i class=\"on\"></i><i></i><i class=\"on\"></i> <i class=\"on\"></i><i></i><i class=\"on\"></i><i></i><i class=\"on\"></i><i></i><i class=\"on\"></i><i></i> <i></i><i class=\"on\"></i><i></i><i class=\"on\"></i><i class=\"on\"></i><i></i><i class=\"on\"></i><i></i> <i class=\"on\"></i><i></i><i></i><i class=\"on\"></i><i></i><i class=\"on\"></i><i></i><i class=\"on\"></i></div><p class=\"qr-url\">yourshop.market/pear-hollow</p></div></div></div></section><section class=\"product-config-section section-pad\"><div class=\"section-heading\"><p class=\"kicker\">Build your sign</p><h2>Choose the options.</h2><p>Pick a size, a frame, and whether you want magnets. This is a preview—finish by sending us the details and we&#39;ll confirm the order.</p></div><form class=\"product-config\" action=\"/#contact\" method=\"get\"><fieldset class=\"option-group\"><legend>Size</legend><div class=\"option-grid\"><label><input type=\"radio\" name=\"size\" value=\"4x6\" checked><span>4&#34; × 6&#34; — table sign</span></label> <label><input type=\"radio\" name=\"size\" value=\"5x7\"><span>5&#34; × 7&#34; — market sign</span></label> <label><input type=\"radio\" name=\"size\" value=\"8x10\"><span>8&#34; × 10&#34; — booth sign</span></label> <label><input type=\"radio\" name=\"size\" value=\"11x14\"><span>11&#34; × 14&#34; — display sign</span></label></div></fieldset><fieldset class=\"option-group\"><legend>Frame type</legend><div class=\"option-grid\"><label><input type=\"radio\" name=\"frame\" value=\"none\" checked><span>No frame — print only</span></label> <label><input type=\"radio\" name=\"frame\" value=\"black\"><span>Black frame</span></label> <label><input type=\"radio\" name=\"frame\" value=\"wood\"><span>Natural wood frame</span></label> <label><input type=\"radio\" name=\"frame\" value=\"stand\"><span>Metal easel stand</span></label></div></fieldset><fieldset class=\"option-group\"><legend>Magnets</legend><div class=\"option-grid\"><label><input type=\"radio\" name=\"magnets\" value=\"no\" checked><span>No magnets</span></label> <label><input type=\"radio\" name=\"magnets\" value=\"yes\"><span>Add magnetic backing</span></label></div></fieldset><fieldset class=\"option-group\"><legend>QR destination</legend> <label class=\"option-select\"><select name=\"destination\"><option value=\"shop\">Online shop</option> <option value=\"menu\">Menu / price list</option> <option value=\"payment\">Payment link</option> <option value=\"signup\">Mailing list signup</option> <option value=\"social\">Social profile</option></select></label></fieldset><div class=\"config-actions\"><a class=\"button button-primary\" href=\"/#contact\">Start a signage order <span>↗</span></a><p class=\"config-note\">Preview only—no payment is taken here.</p></div></form></section></main>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<main id=\"main\" class=\"product-main\" data-signage><section class=\"product-hero section-pad\"><div class=\"product-layout\"><div class=\"product-copy\"><p class=\"kicker\">Market vendors / Signage</p><h1>Slate signage.<br>Made for your table.</h1><p class=\"product-intro\">Explore a slate display for your shop, menu, or payment destination, with an optional wooden stand.</p><p>This is a preview and inquiry tool, not a checkout. Contact us to discuss your sign and confirm the details.</p></div><div class=\"product-preview signage-preview\"><img data-signage-image alt=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(data.ImageAlt)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/services.templ`, Line: 83, Col: 27}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if data.ImageURL == "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, " hidden")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		if data.ImageURL != "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, " src=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(data.ImageURL)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/services.templ`, Line: 86, Col: 28}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "><p data-signage-empty")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if data.ImageURL != "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, " hidden")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, ">No saved photograph is available for this configuration yet.</p><p class=\"signage-caption\">Saved product photos only. Your title and destination do not change the photograph; no QR code is generated here.</p><p class=\"signage-caption\" data-signage-status role=\"status\" aria-live=\"polite\"></p></div></div></section><section class=\"product-config-section section-pad\"><div class=\"section-heading\"><p class=\"kicker\">Explore your sign</p><h2>Choose the options.</h2><p>Unavailable sizes remain visible so you can see the range. Only currently enabled options can be selected.</p></div><div class=\"product-config\"><fieldset class=\"option-group\"><legend>Slate size</legend><div class=\"option-grid\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		for _, option := range data.Options {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<label><input type=\"radio\" name=\"signage-size\" value=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var5 string
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(option.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/services.templ`, Line: 107, Col: 67}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if option.Selected {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, " checked")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			if !option.Active {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, " disabled")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, " data-signage-size data-name=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var6 string
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(option.Name)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/services.templ`, Line: 107, Col: 169}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" data-image=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var7 string
+			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(option.ImageURL)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/services.templ`, Line: 107, Col: 200}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" data-stand-image=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var8 string
+			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(option.StandImageURL)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/services.templ`, Line: 107, Col: 242}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\"> <span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var9 string
+			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(option.Name)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/services.templ`, Line: 109, Col: 24}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, " ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if !option.Active {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<small>— currently unavailable</small>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</span></label>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if !data.Available {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<p>No slate sizes are currently available. Please contact us to discuss availability.</p>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</fieldset><fieldset class=\"option-group\"><legend>Display accessory</legend><div class=\"option-grid\"><label><input type=\"checkbox\" name=\"signage-stand\" value=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var10 string
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(data.StandID)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/services.templ`, Line: 125, Col: 73}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\" data-signage-stand")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if !data.StandActive || !data.Available {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, " disabled")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "> <span>Add wooden stand? ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if !data.StandActive {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<small>— currently unavailable</small>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</span></label></div></fieldset><div class=\"signage-fields\"><label for=\"signage-title\">Title <span>(up to 20 characters)</span></label> <input id=\"signage-title\" name=\"signage-title\" type=\"text\" maxlength=\"20\" aria-describedby=\"signage-details-note\"> <label for=\"signage-destination\">Destination URL <span>(up to 200 characters)</span></label> <input id=\"signage-destination\" name=\"signage-destination\" type=\"url\" maxlength=\"200\" placeholder=\"https://example.com/shop\" aria-describedby=\"signage-details-note\"><p id=\"signage-details-note\">These details are for planning only: they are not saved or sent. Include your title, destination URL, size, and stand preference when you contact us. The saved photo is not a personalized proof.</p></div><noscript><p>JavaScript is needed to switch saved photographs when you change options. The initial photograph, if available, shows the default size without a stand.</p></noscript><div class=\"config-actions\"><a class=\"button button-primary\" href=\"/#contact\">Ask about slate signage <span>↗</span></a><p class=\"config-note\">Preview and inquiry only—no order or payment is submitted here.</p></div></div></section></main>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -106,7 +321,7 @@ func VendingSignagePage(account AccountView) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

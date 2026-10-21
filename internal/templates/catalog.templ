@@ -1,0 +1,118 @@
+package templates
+
+import (
+	"github.com/bkroeze/oregon-dev-foundry/internal/commerce"
+	"strconv"
+)
+
+type CatalogEntry struct {
+	Product commerce.Product
+	Images  []commerce.ProductImage
+}
+
+func catalogID(id int64) string   { return strconv.FormatInt(id, 10) }
+func catalogBase(id int64) string { return "/admin/catalog/" + catalogID(id) }
+func catalogImageLabel(product commerce.Product, image commerce.ProductImage) string {
+	if image.SKUID == 0 {
+		return "Representative product default"
+	}
+	label := "Primary SKU"
+	for _, sku := range product.SKUs {
+		if sku.ID == image.SKUID {
+			label = sku.Name
+		}
+	}
+	for _, sku := range product.Addons {
+		if sku.ID == image.AddonSKUID {
+			label += " + " + sku.Name
+		}
+	}
+	return label
+}
+
+templ CatalogStatusForm(action string, active bool, token string, label string) {
+	<form action={ action } method="post" class="admin-commerce-form">
+		<input type="hidden" name="csrf_token" value={ token }/>
+		<label>
+			{ label }
+			<select name="active">
+				<option value="true" selected?={ active }>Enabled</option>
+				<option value="false" selected?={ !active }>Disabled</option>
+			</select>
+		</label>
+		<button class="button" type="submit">Save status</button>
+	</form>
+}
+
+templ AdminCatalogPage(account AccountView, entries []CatalogEntry) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@PageHead("Catalog images and availability · Admin")
+		<body>
+			<a class="skip-link" href="#main">Skip to content</a>
+			@SiteHeader(account)
+			<main id="main" class="account-main">
+				<section class="account-panel account-panel-wide">
+					<p class="kicker">Administration / Catalog</p>
+					<h1>Catalog images and availability</h1>
+					<p>Manage saved product previews and enabled options across the entire catalog. Images do not change pricing or checkout behavior.</p>
+					<nav class="account-actions" aria-label="Catalog tools"><a class="button" href="/admin">Admin home</a><a class="button" href="/admin/products/new">New product</a></nav>
+					if len(entries) == 0 {
+						<p>No products in the catalog.</p>
+					}
+					for _, entry := range entries {
+						<article class="admin-commerce-card">
+							<h2>{ entry.Product.Name }</h2>
+							<p>{ entry.Product.MasterSKU }</p>
+							<a class="text-link" href={ "/admin/products/" + catalogID(entry.Product.ID) }>Edit full product details</a>
+							@CatalogStatusForm(catalogBase(entry.Product.ID)+"/status", entry.Product.Active, account.CSRFToken, "Product availability")
+							<h3>Primary options</h3>
+							for _, sku := range entry.Product.SKUs {
+								@CatalogStatusForm(catalogBase(entry.Product.ID)+"/skus/"+catalogID(sku.ID)+"/status", sku.Active, account.CSRFToken, sku.Name+" ("+sku.SKU+")")
+							}
+							<h3>Add-on options</h3>
+							for _, sku := range entry.Product.Addons {
+								@CatalogStatusForm(catalogBase(entry.Product.ID)+"/skus/"+catalogID(sku.ID)+"/status", sku.Active, account.CSRFToken, sku.Name+" ("+sku.SKU+")")
+							}
+							<h3>Import a saved image</h3>
+							<p>JPEG or PNG, maximum 8 MiB and 20 million pixels. Images are resized to a maximum edge of 1200 pixels, without upscaling, and metadata is removed. Uploading replaces the selected slot. A product default is representative, not an exact option preview.</p>
+							<form action={ catalogBase(entry.Product.ID) + "/images" } method="post" enctype="multipart/form-data" class="admin-commerce-form">
+								<input type="hidden" name="csrf_token" value={ account.CSRFToken }/>
+								<label>
+									Image slot
+									<select name="sku_id">
+										<option value="0">Representative product default</option>
+										for _, sku := range entry.Product.SKUs {
+											<option value={ catalogID(sku.ID) }>{ sku.Name }</option>
+										}
+									</select>
+								</label>
+								<label>
+									Optional add-on (requires a primary option)
+									<select name="addon_sku_id">
+										<option value="0">No add-on</option>
+										for _, sku := range entry.Product.Addons {
+											<option value={ catalogID(sku.ID) }>{ sku.Name }</option>
+										}
+									</select>
+								</label>
+								<label>Image file<input type="file" name="image" accept="image/jpeg,image/png" required/></label>
+								<button class="button button-primary" type="submit">Import image</button>
+							</form>
+							if len(entry.Images) == 0 {
+								<p>No saved images yet.</p>
+							}
+							for _, image := range entry.Images {
+								<figure>
+									<img src={ "/media/products/" + image.Filename } alt={ entry.Product.Name + " — " + catalogImageLabel(entry.Product, image) } width="320" loading="lazy" style="max-width:100%;height:auto"/>
+									<figcaption>{ catalogImageLabel(entry.Product, image) } — { strconv.Itoa(image.Width) } × { strconv.Itoa(image.Height) } pixels</figcaption>
+								</figure>
+							}
+						</article>
+					}
+				</section>
+			</main>
+			@PageFooter()
+		</body>
+	</html>
+}

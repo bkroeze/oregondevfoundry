@@ -916,7 +916,7 @@ func AdminLandingPage(account AccountView) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "</strong></p><p class=\"account-intro\">Manage the storefront catalog and user accounts from the tools below.</p><nav class=\"account-actions account-admin-actions\" aria-label=\"Administration tools\"><a class=\"button button-primary\" href=\"/admin/shop\">Shop management <span>↗</span></a> <a class=\"button\" href=\"/admin/users\">User management <span>↗</span></a></nav></section></main>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "</strong></p><p class=\"account-intro\">Manage the storefront catalog and user accounts from the tools below.</p><nav class=\"account-actions account-admin-actions\" aria-label=\"Administration tools\"><a class=\"button button-primary\" href=\"/admin/shop\">Shop management <span>↗</span></a> <a class=\"button\" href=\"/admin/catalog\">Catalog images and availability <span>↗</span></a> <a class=\"button\" href=\"/admin/users\">User management <span>↗</span></a></nav></section></main>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

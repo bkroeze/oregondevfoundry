@@ -38,6 +38,24 @@ CREATE INDEX IF NOT EXISTS commerce_skus_product ON commerce_skus(product_id, ki
 CREATE INDEX IF NOT EXISTS commerce_skus_stripe_price ON commerce_skus(stripe_price_id) WHERE stripe_price_id <> '';
 CREATE UNIQUE INDEX IF NOT EXISTS commerce_skus_primary_options ON commerce_skus(product_id, options_json) WHERE kind = 'primary';
 
+CREATE TABLE IF NOT EXISTS commerce_product_images (
+    id INTEGER PRIMARY KEY,
+    product_id INTEGER NOT NULL REFERENCES commerce_products(id) ON DELETE CASCADE,
+    sku_id INTEGER REFERENCES commerce_skus(id) ON DELETE CASCADE,
+    addon_sku_id INTEGER REFERENCES commerce_skus(id) ON DELETE CASCADE,
+    filename TEXT NOT NULL,
+    width INTEGER NOT NULL CHECK (width > 0),
+    height INTEGER NOT NULL CHECK (height > 0),
+    CHECK (addon_sku_id IS NULL OR sku_id IS NOT NULL)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS commerce_product_images_slot
+    ON commerce_product_images(product_id, COALESCE(sku_id, 0), COALESCE(addon_sku_id, 0));
+
+CREATE TABLE IF NOT EXISTS commerce_catalog_seeds (
+    name TEXT PRIMARY KEY,
+    created_at INTEGER NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS commerce_product_shipping_options (
     id INTEGER PRIMARY KEY,
     product_id INTEGER NOT NULL REFERENCES commerce_products(id) ON DELETE CASCADE,

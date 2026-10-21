@@ -51,6 +51,7 @@ $EDITOR .env
 | `TURNSTILE_SECRET_KEY` | Yes | Private Turnstile verification key. |
 | `IMAGE` | No | Image tag used by the Docker recipes. |
 | `DATABASE_PATH` | No | SQLite path, default `data/oregon-dev-foundry.db`; the parent directory is created with user-only permissions. |
+| `MEDIA_DIR` | No | Imported product image directory; defaults to `media` beside `DATABASE_PATH` (`data/media` locally). Must be writable and persistent. Docker defaults to `/data/media`. |
 | `SESSION_COOKIE_SECURE` | No | `true` by default. Set `false` only for local plain-HTTP development. |
 | `SERVICES_ENABLED` | No | Registers the public services catalog, AI Concierge, and vending-signage endpoints and shows the primary-navigation link when `true`; default `false`. |
 | `TESTIMONIALS_ENABLED` | No | Renders the homepage testimonials section and serves its image assets when `true`; default `false`. |
@@ -79,20 +80,34 @@ just fixture fixtures/another-product.json /tmp/oregon-dev-foundry.db
 The fixture command creates or updates the product by slug or master SKU, then creates or updates its listed SKUs and shipping options. Records omitted from a fixture are left unchanged. Use `null` for an unlimited SKU inventory.
 
 
+### Catalog images and slate signage
+
+Visit `/admin` → **Catalog images & availability** (administrator login required), or open `/admin/catalog`. This page manages product and primary/add-on availability across the entire catalog without changing their other fields. Full product editing remains under `/admin/products`.
+
+Import a JPEG or PNG into a product default, primary SKU, or primary-plus-add-on image slot. Uploads are limited to 8 MiB and 20 million pixels, resized proportionally to a maximum 1200-pixel edge without upscaling, and re-encoded without original metadata. Files receive content-hash names in `MEDIA_DIR` and are served under `/media/products/`. Reimporting a slot replaces its association; previous immutable files remain on disk. Back up both the SQLite database and media directory.
+
+With `SERVICES_ENABLED=true`, startup initializes the `vending-signage` catalog once: 4x4 Slate — Tabletop display and the wooden stand enabled; 12x8, 8x4, and 9x6 Slate disabled. Later admin changes are preserved. An existing product with that slug is left untouched, so configure its variants manually if it predates this setup.
+
+`/shop/vending-signage` remains a preview/inquiry page, not checkout. Size and stand choices show the exact saved image for that combination; upload each combination separately. Missing images are clearly identified rather than simulated. The title is limited to 20 characters and destination URL to 200; these planning fields are not saved or sent and do not generate a QR code. Seeded variants have zero inventory to prevent accidental unpriced purchases; preview selection uses enabled status independently of inventory.
+
 ### User CRUD
 
-The `users` recipe supports `list`, `show`, `create`, `update`, and `delete`. Passwords are never accepted in command arguments. Pipe them over standard input:
+The `users` recipe supports `list`, `show`, `create`, `update`, and `delete`. Passwords are never accepted in command arguments. Pipe them over standard input for create/update, or use the hidden prompt for password changes:
 
 ```sh
 read -rsp "Password: " PASSWORD; printf '\n'
 printf '%s\n' "$PASSWORD" | just users create ada "Ada Lovelace" user false
 unset PASSWORD
 
+just password ada
+
 just users list
 just users show ada
 just users update ada "Ada Lovelace" client false
 just users delete ada
 ```
+
+`just password <username>` prompts for the new password twice without echoing either entry. It uses the configured `DATABASE_PATH` and revokes the user's active sessions after a successful change.
 
 The final `true`/`false` value on `create` and `update` controls the purchase-history marker used to distinguish `New Customer` from `Customer`. Successful checkout fulfillment sets it automatically. Set `DATABASE_PATH` to manage a non-default database.
 The underlying `go run ./cmd/users` commands also accept `--email` when creating or updating an account; passing an empty value during an update clears the email.
@@ -125,6 +140,8 @@ just check      # generation consistency, format, tests, vet, and build
 | `GET /client` | Client-only landing page. |
 | `GET /admin` | Admin-only landing page. |
 | `GET /admin/shop` | Admin landing alias for product, SKU, inventory, pricing, and fixed-shipping management. |
+| `GET /admin/catalog`, `POST /admin/catalog/...` | Admin-only catalog-wide image imports and product/SKU availability controls; mutations require CSRF. |
+| `GET /media/products/{filename}` | Serve normalized, immutable imported product images. |
 | `GET, POST /admin/users...` | Admin-only user CRUD, account details, and order/subscription history; admin password changes remain CLI-only. |
 | `GET, POST /admin/products...` | Admin-only product, SKU, inventory, pricing, and fixed-shipping management. |
 | `GET /shop/{slug}` | Render any active database-backed product. |
@@ -148,7 +165,9 @@ Contact requests are limited to 16 KiB. User fields have server-side length and 
 
 ## Container deployment
 
-The Dockerfile uses a Go build stage and a small Alpine runtime containing CA certificates, the server, and the user-administration binary. The binaries run under an unprivileged numeric UID. Static assets and templates are embedded in the server. SQLite data lives under `/data`, which must be mounted persistently. The image exposes port `8080` and includes a `/healthz` health check.
+For the existing production app on `host.barnlab.dev`, follow the [Coolify deployment runbook](docs/coolify-deploy.md). It uses the actual `/storage` bind and `/storage/data/odf_prod.db`, rather than the generic image defaults below, and covers cold backups, media storage, automatic migrations, admin credentials, verification, and rollback.
+
+The Dockerfile uses a Go build stage and a small Alpine runtime containing CA certificates, the server, and the user-administration binary. The binaries run under an unprivileged numeric UID. Static assets and templates are embedded in the server; imported product images are stored separately in `/data/media`. SQLite data and imported images live under `/data`, which must be mounted persistently and backed up together. If overriding `DATABASE_PATH` or `MEDIA_DIR` through an env file, keep both on persistent mounts. The image exposes port `8080` and includes a `/healthz` health check.
 
 ```sh
 just docker-build

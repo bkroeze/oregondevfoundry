@@ -15,7 +15,7 @@ COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certifica
 COPY --from=build --chown=10001:10001 /out/oregon-dev-foundry /usr/local/bin/oregon-dev-foundry
 COPY --from=build --chown=10001:10001 /out/users /usr/local/bin/users
 
-ENV PORT=8080 DATABASE_PATH=/data/oregon-dev-foundry.db SESSION_COOKIE_SECURE=true
+ENV PORT=8080 DATABASE_PATH=/data/oregon-dev-foundry.db MEDIA_DIR=/data/media SESSION_COOKIE_SECURE=true
 USER 10001:10001
 EXPOSE 8080
 VOLUME ["/data"]
