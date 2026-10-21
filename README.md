@@ -17,6 +17,12 @@ The standalone Go web application for [oregondevfoundry.com](https://oregondevfo
 
 The contact form is an ordinary HTML `POST` form first. With JavaScript available, HTMX swaps only the rendered form fragment and preserves the visual interaction. Without HTMX, the server returns the complete page with the same validation or delivery status, so the form remains accessible. Tests inject fake verification and mail implementations and never contact Mailgun or send real email.
 
+### Meridian presale preview
+
+`/meridian-presale` redirects to `/meridian-presale/`, which serves the original standalone campaign page without the ODF site layout or scripts. Its HTML and assets live in `internal/web/static/meridian-presale/` and are embedded in the server binary; rebuild and redeploy after changing them. Relative asset URLs resolve under `/meridian-presale/assets/`.
+
+The imported preview retains its own navigation, styling, Google Fonts, and draft reward links unchanged; it does not initiate checkout.
+
 ## Requirements
 
 - Go 1.24 or newer
@@ -86,7 +92,7 @@ Visit `/admin` → **Catalog images & availability** (administrator login requir
 
 Import a JPEG or PNG into a product default, primary SKU, or primary-plus-add-on image slot. Uploads are limited to 8 MiB and 20 million pixels, resized proportionally to a maximum 1200-pixel edge without upscaling, and re-encoded without original metadata. Files receive content-hash names in `MEDIA_DIR` and are served under `/media/products/`. Reimporting a slot replaces its association; previous immutable files remain on disk. Back up both the SQLite database and media directory.
 
-With `SERVICES_ENABLED=true`, startup initializes the `vending-signage` catalog once: 4x4 Slate — Tabletop display and the wooden stand enabled; 12x8, 8x4, and 9x6 Slate disabled. Later admin changes are preserved. An existing product with that slug is left untouched, so configure its variants manually if it predates this setup.
+With `SERVICES_ENABLED=true`, startup initializes the `vending-signage` catalog once: 4x4 Slate — Tabletop display and the wooden stand enabled; 12x8, 8x4, and 9x6 Slate disabled. Later admin changes are preserved. An existing product with that slug or the canonical `SLATE-SIGNAGE` master SKU is left untouched and served at `/shop/vending-signage`, so configure its variants manually if it predates this setup.
 
 `/shop/vending-signage` remains a preview/inquiry page, not checkout. Size and stand choices show the exact saved image for that combination; upload each combination separately. Missing images are clearly identified rather than simulated. The title is limited to 20 characters and destination URL to 200; these planning fields are not saved or sent and do not generate a QR code. Seeded variants have zero inventory to prevent accidental unpriced purchases; preview selection uses enabled status independently of inventory.
 
@@ -185,6 +191,9 @@ docker run --rm --env-file .env -p 8080:8080 \
 
 # Set IMAGE to the intended registry/repository before publishing.
 IMAGE=ghcr.io/bkroeze/oregon-dev-foundry:latest just docker-push
+
+# Build and push a release (TAG is required; replaces the tag in IMAGE).
+just docker-release v1.2.3
 ```
 
 Do not bake `.env` into an image or commit it. Configure production secrets through the deployment platform.

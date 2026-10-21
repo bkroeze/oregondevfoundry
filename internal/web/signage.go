@@ -12,6 +12,9 @@ import (
 
 func (h Handler) vendingSignagePage(w http.ResponseWriter, r *http.Request) {
 	product, err := h.commerce.ProductBySlug(r.Context(), "vending-signage")
+	if errors.Is(err, commerce.ErrNotFound) {
+		product, err = h.commerce.ProductByMasterSKU(r.Context(), "SLATE-SIGNAGE")
+	}
 	if errors.Is(err, commerce.ErrNotFound) || err == nil && !product.Active {
 		http.NotFound(w, r)
 		return
@@ -33,7 +36,7 @@ func (h Handler) vendingSignagePage(w http.ResponseWriter, r *http.Request) {
 func signagePageData(product commerce.Product, images []commerce.ProductImage) templates.SignagePageData {
 	data := templates.SignagePageData{}
 	for _, addon := range product.Addons {
-		if addon.SKU == "SLATE-STAND" {
+		if addon.SKU == "SLATE-STAND" || addon.SKU == "wooden-stand" {
 			data.StandID = strconv.FormatInt(addon.ID, 10)
 			data.StandActive = addon.Active
 			break

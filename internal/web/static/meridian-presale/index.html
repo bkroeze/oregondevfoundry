@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="The Meridian — a live astrological clock for your wall or desk. Precision Swiss Ephemeris astronomy rendered as a beautiful instrument. By Oregon Dev Foundry.">
+<title>The Meridian — A Living Astrological Clock · Oregon Dev Foundry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f3eee4;
+    --paper-deep:#e9e2d2;
+    --ink:#151515;
+    --muted:#665f55;
+    --line:rgba(21,21,21,.22);
+    --hot:#ff5038;
+    --slate:#2b3138;
+    --slate-deep:#20252b;
+    --max:1320px;
+    --pad:clamp(1.25rem,4vw,4.5rem);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Archivo','Helvetica Neue',Helvetica,Arial,sans-serif;
+    font-size:17px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--hot);color:var(--paper)}
+  .mono{font-family:'DM Mono',ui-monospace,monospace}
+  .wrap{max-width:var(--max);margin:0 auto;padding-left:var(--pad);padding-right:var(--pad)}
+  img,video{display:block;max-width:100%}
+
+  /* ── header ─────────────────────────── */
+  header.site{
+    position:sticky;top:0;z-index:50;
+    background:var(--paper);
+    border-bottom:1px solid var(--ink);
+  }
+  .site-inner{display:flex;align-items:center;justify-content:space-between;gap:2rem;padding-top:.9rem;padding-bottom:.9rem}
+  .brand{display:flex;align-items:center;gap:.65rem;text-decoration:none;color:var(--ink);font-weight:800;letter-spacing:-.01em}
+  .brand-mark{display:grid;grid-template-columns:repeat(2,9px);grid-template-rows:repeat(2,9px);gap:2px}
+  .brand-mark i{background:var(--ink)}
+  .brand-mark i:nth-child(2){background:var(--hot)}
+  .brand small{display:block;font-weight:500;color:var(--muted);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase}
+  nav.top{display:flex;gap:1.6rem;align-items:center;font-size:.85rem;font-weight:600}
+  nav.top a{color:var(--ink);text-decoration:none;text-transform:uppercase;letter-spacing:.08em}
+  nav.top a:hover{color:var(--hot)}
+  .backer-btn{background:var(--hot);color:#fff!important;padding:.6rem 1.2rem;border:1px solid var(--hot)}
+  .backer-btn:hover{background:var(--ink);border-color:var(--ink)}
+  @media(max-width:760px){nav.top a:not(.backer-btn){display:none}}
+
+  /* ── kickstarter strip ──────────────── */
+  .ks-strip{background:var(--ink);color:var(--paper);font-size:.78rem;letter-spacing:.12em;text-transform:uppercase}
+  .ks-strip .wrap{display:flex;justify-content:space-between;gap:1rem;padding-top:.5rem;padding-bottom:.5rem}
+  .ks-strip b{color:var(--hot)}
+
+  /* ── hero ───────────────────────────── */
+  .hero{border-bottom:1px solid var(--ink)}
+  .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(2rem,5vw,5rem);align-items:end;padding-top:clamp(3rem,7vw,6.5rem);padding-bottom:clamp(2.5rem,5vw,4.5rem)}
+  .kicker{font-size:.78rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:1.4rem}
+  .kicker b{color:var(--hot)}
+  h1{
+    font-size:clamp(3rem,7.5vw,6.6rem);
+    line-height:.94;letter-spacing:-.035em;font-weight:900;
+    text-transform:uppercase;
+  }
+  h1 .accent{color:var(--hot)}
+  .hero-sub{margin-top:1.8rem;max-width:34ch;font-size:1.15rem;color:var(--muted);font-weight:500}
+  .hero-cta{margin-top:2.2rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:center}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.85rem;padding:.95rem 1.8rem;border:1px solid var(--ink);color:var(--ink)}
+  .btn-primary{background:var(--ink);color:var(--paper)}
+  .btn-primary:hover{background:var(--hot);border-color:var(--hot)}
+  .btn-ghost:hover{background:var(--ink);color:var(--paper)}
+  .hero-clock{position:relative}
+  .hero-clock svg{width:100%;height:auto;background:var(--slate-deep);border-radius:50%;box-shadow:0 30px 80px -20px rgba(21,21,21,.45)}
+  .hero-clock .ring{position:absolute;inset:-4.5%;border:1px solid var(--ink);border-radius:50%;pointer-events:none}
+  .clock-caption{display:flex;justify-content:space-between;margin-top:.8rem;font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+  @media(max-width:900px){.hero-grid{grid-template-columns:1fr}}
+
+  /* ── ticker ─────────────────────────── */
+  .ticker{border-bottom:1px solid var(--ink);overflow:hidden;white-space:nowrap;background:var(--paper)}
+  .ticker-track{display:inline-block;padding:.85rem 0;animation:tick 30s linear infinite}
+  .ticker span{font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:.9rem;margin:0 1.2rem}
+  .ticker b{color:var(--hot)}
+  @keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @media(prefers-reduced-motion:reduce){.ticker-track{animation:none}}
+
+  /* ── stats band ─────────────────────── */
+  .stats{border-bottom:1px solid var(--ink);background:var(--hot);color:var(--ink)}
+  .stats .wrap{display:grid;grid-template-columns:repeat(4,1fr);padding-top:0;padding-bottom:0}
+  .stat{padding:1.8rem 1.4rem;border-left:1px solid rgba(21,21,21,.35)}
+  .stat:first-child{border-left:none}
+  .stat .num{font-size:clamp(1.8rem,3.5vw,3rem);font-weight:900;letter-spacing:-.03em;line-height:1}
+  .stat .lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;font-weight:600;margin-top:.5rem}
+  @media(max-width:760px){.stats .wrap{grid-template-columns:repeat(2,1fr)}.stat{border-left:none;border-top:1px solid rgba(21,21,21,.35)}}
+
+  /* ── section scaffolding ────────────── */
+  section.block{border-bottom:1px solid var(--ink)}
+  .block-head{display:flex;align-items:baseline;justify-content:space-between;gap:2rem;padding-top:clamp(3rem,6vw,5.5rem);margin-bottom:clamp(2rem,4vw,3.5rem)}
+  .block-head h2{font-size:clamp(2rem,4.5vw,3.6rem);font-weight:900;text-transform:uppercase;letter-spacing:-.03em;line-height:1;max-width:18ch}
+  .sec-num{font-size:.8rem;color:var(--muted);letter-spacing:.14em;white-space:nowrap}
+
+  /* ── mockups ────────────────────────── */
+  .mockup-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(1.5rem,3vw,3rem);padding-bottom:clamp(3rem,6vw,5rem)}
+  .mockup{position:relative}
+  .mockup img{border:1px solid var(--ink);width:100%;height:100%;object-fit:cover}
+  .mockup .tag{position:absolute;top:1rem;left:1rem;background:var(--paper);border:1px solid var(--ink);padding:.35rem .8rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em}
+  .mockup figcaption{margin-top:.8rem;font-size:.85rem;color:var(--muted);display:flex;justify-content:space-between}
+  @media(max-width:800px){.mockup-grid{grid-template-columns:1fr}}
+
+  /* ── features ───────────────────────── */
+  .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--ink);border-left:1px solid var(--ink);margin-bottom:clamp(3rem,6vw,5rem)}
+  .feat{border-right:1px solid var(--ink);border-bottom:1px solid var(--ink);padding:2rem 1.6rem;min-height:230px;display:flex;flex-direction:column}
+  .feat .idx{font-size:.72rem;color:var(--muted);letter-spacing:.14em;margin-bottom:auto}
+  .feat h3{font-size:1.25rem;font-weight:800;text-transform:uppercase;letter-spacing:-.01em;margin:1.6rem 0 .6rem}
+  .feat p{font-size:.92rem;color:var(--muted)}
+  .feat:hover{background:var(--ink);color:var(--paper)}
+  .feat:hover p,.feat:hover .idx{color:var(--paper-deep)}
+  @media(max-width:900px){.feat-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:600px){.feat-grid{grid-template-columns:1fr}}
+
+  /* ── charts / sky anywhere ──────────── */
+  .sky{background:var(--slate-deep);color:var(--paper)}
+  .sky .block-head h2{color:var(--paper)}
+  .sky .sec-num{color:#9aa4ad}
+  .sky-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(1.5rem,3vw,2.5rem);padding-bottom:clamp(2rem,4vw,3rem)}
+  .sky-card img{border-radius:50%;width:100%;border:1px solid rgba(255,255,255,.15)}
+  .sky-card h4{margin-top:1.1rem;font-weight:800;text-transform:uppercase;font-size:1rem;letter-spacing:.02em}
+  .sky-card p{font-size:.82rem;color:#9aa4ad;margin-top:.3rem}
+  .sky-note{padding-bottom:clamp(3rem,6vw,5rem);font-size:.9rem;color:#9aa4ad;max-width:60ch}
+  .sky-note b{color:var(--hot)}
+  @media(max-width:800px){.sky-grid{grid-template-columns:1fr;max-width:420px}}
+
+  /* ── video ──────────────────────────── */
+  .motion-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:clamp(2rem,4vw,4rem);align-items:center;padding-bottom:clamp(3rem,6vw,5rem)}
+  .motion-grid video{border:1px solid var(--ink);width:100%;background:var(--slate-deep)}
+  .motion-copy h3{font-size:clamp(1.6rem,3vw,2.4rem);font-weight:900;text-transform:uppercase;letter-spacing:-.02em;line-height:1.05;margin-bottom:1.2rem}
+  .motion-copy p{color:var(--muted);max-width:44ch}
+  .motion-copy ul{list-style:none;margin-top:1.4rem;font-size:.9rem}
+  .motion-copy li{padding:.55rem 0;border-top:1px solid var(--line);display:flex;gap:.8rem}
+  .motion-copy li::before{content:"◆";color:var(--hot);font-size:.7rem;line-height:1.8}
+  @media(max-width:800px){.motion-grid{grid-template-columns:1fr}}
+
+  /* ── rewards ────────────────────────── */
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(1.5rem,3vw,2.5rem);padding-bottom:clamp(3rem,6vw,5rem)}
+  .tier{border:1px solid var(--ink);padding:2rem 1.8rem;display:flex;flex-direction:column;background:var(--paper)}
+  .tier.hot{background:var(--ink);color:var(--paper);position:relative}
+  .tier .price{font-size:clamp(2.2rem,4vw,3.2rem);font-weight:900;letter-spacing:-.03em;line-height:1;margin:1rem 0 .2rem}
+  .tier .name{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)}
+  .tier.hot .name{color:var(--paper-deep)}
+  .tier ul{list-style:none;margin:1.6rem 0;flex:1}
+  .tier li{padding:.5rem 0;border-top:1px solid var(--line);font-size:.9rem}
+  .tier.hot li{border-color:rgba(255,255,255,.2)}
+  .tier .ribbon{position:absolute;top:-1px;right:-1px;background:var(--hot);color:#fff;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;padding:.4rem .9rem}
+  .tier .btn{text-align:center}
+  .tier.hot .btn{background:var(--hot);border-color:var(--hot);color:#fff}
+  .tier.hot .btn:hover{background:var(--paper);border-color:var(--paper);color:var(--ink)}
+  @media(max-width:900px){.tiers{grid-template-columns:1fr;max-width:480px}}
+
+  /* ── openness ───────────────────────── */
+  .open-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:clamp(2rem,4vw,4rem);padding-bottom:clamp(3rem,6vw,5rem);align-items:start}
+  .open-grid h3{font-size:1.05rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem}
+  .open-grid p{color:var(--muted);font-size:.95rem;margin-bottom:1.6rem;max-width:52ch}
+  .code-card{background:var(--ink);color:var(--paper-deep);padding:1.6rem;font-size:.82rem;line-height:1.7;overflow-x:auto;border:1px solid var(--ink)}
+  .code-card .c{color:#8a8577}
+  .code-card .h{color:var(--hot)}
+  @media(max-width:800px){.open-grid{grid-template-columns:1fr}}
+
+  /* ── faq ────────────────────────────── */
+  details.faq{border-top:1px solid var(--ink)}
+  details.faq:last-of-type{border-bottom:1px solid var(--ink)}
+  .faq-list{padding-bottom:clamp(3rem,6vw,5rem)}
+  details.faq summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:baseline;gap:1rem;padding:1.3rem 0;font-weight:700;font-size:1.05rem;text-transform:uppercase;letter-spacing:-.01em}
+  details.faq summary::-webkit-details-marker{display:none}
+  details.faq summary::after{content:"+";font-size:1.4rem;font-weight:400;color:var(--hot)}
+  details.faq[open] summary::after{content:"–"}
+  details.faq p{padding:0 0 1.4rem;color:var(--muted);max-width:64ch}
+
+  /* ── final cta ──────────────────────── */
+  .final{background:var(--hot);color:var(--ink);text-align:center;border-bottom:1px solid var(--ink)}
+  .final h2{font-size:clamp(2.6rem,7vw,6rem);font-weight:900;text-transform:uppercase;letter-spacing:-.03em;line-height:.95;padding-top:clamp(3.5rem,8vw,7rem)}
+  .final p{max-width:46ch;margin:1.6rem auto 0;font-weight:600}
+  .final .btn{margin:2.4rem 0 1rem;background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .final .btn:hover{background:var(--paper);color:var(--ink);border-color:var(--paper)}
+  .final .fine{font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;padding-bottom:clamp(3.5rem,8vw,6rem);opacity:.75}
+
+  footer{background:var(--ink);color:var(--paper)}
+  footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:2rem;padding-top:2rem;padding-bottom:2rem;font-size:.8rem;flex-wrap:wrap}
+  footer .brand{color:var(--paper)}
+  footer .brand-mark i{background:var(--paper)}
+  footer .brand-mark i:nth-child(2){background:var(--hot)}
+  footer a{color:var(--paper);text-decoration:underline;text-underline-offset:3px}
+  footer a:hover{color:var(--hot)}
+</style>
+</head>
+<body>
+
+<div class="ks-strip mono">
+  <div class="wrap">
+    <span>Concept campaign preview — <b>Kickstarter draft</b></span>
+    <span>ODF / Product 01</span>
+  </div>
+</div>
+
+<header class="site">
+  <div class="wrap site-inner">
+    <a class="brand" href="#top">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span>Oregon Dev Foundry<small>presents</small></span>
+    </a>
+    <nav class="top">
+      <a href="#design">Design</a>
+      <a href="#features">Features</a>
+      <a href="#sky">Any Sky</a>
+      <a href="#rewards">Rewards</a>
+      <a href="#faq">FAQ</a>
+      <a class="backer-btn" href="#rewards">Back this project</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kicker">The Meridian / 01 — <b>A precision instrument for the sky above you</b></p>
+        <h1>The sky,<br>on your<br><span class="accent">wall.</span></h1>
+        <p class="hero-sub">A living astrological clock. Real planetary positions — computed with Swiss Ephemeris precision — rendered as a beautiful instrument for your wall or desk.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#rewards">Back the Meridian ↗</a>
+          <a class="btn btn-ghost" href="#features">Explore features ↓</a>
+        </div>
+      </div>
+      <figure class="hero-clock">
+        <span class="ring" aria-hidden="true"></span>
+        <img src="assets/chart-portland.svg" alt="Live astrological clock rendering — Portland, Oregon" width="720" height="720">
+        <figcaption class="clock-caption mono"><span>Live render · 45.51°N 122.68°W</span><span>Swiss Ephemeris</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- TICKER -->
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <span>Live planetary positions</span><b>◆</b><span>4″ round display</span><b>◆</b><span>Open source</span><b>◆</b><span>Swiss Ephemeris precision</span><b>◆</b><span>Touch to travel in time</span><b>◆</b><span>Any planet, any sky</span><b>◆</b>
+      <span>Live planetary positions</span><b>◆</b><span>4″ round display</span><b>◆</b><span>Open source</span><b>◆</b><span>Swiss Ephemeris precision</span><b>◆</b><span>Touch to travel in time</span><b>◆</b><span>Any planet, any sky</span><b>◆</b>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <section class="stats">
+    <div class="wrap">
+      <div class="stat"><div class="num">4″</div><div class="lbl">Round color display</div></div>
+      <div class="stat"><div class="num">0.001°</div><div class="lbl">Ephemeris precision</div></div>
+      <div class="stat"><div class="num">∞</div><div class="lbl">Free live updates</div></div>
+      <div class="stat"><div class="num">$349</div><div class="lbl">Target early-bird</div></div>
+    </div>
+  </section>
+
+  <!-- DESIGN / MOCKUPS -->
+  <section class="block" id="design">
+    <div class="wrap">
+      <div class="block-head">
+        <h2>An instrument, not a gadget</h2>
+        <span class="sec-num mono">SEC / 01</span>
+      </div>
+      <div class="mockup-grid">
+        <figure class="mockup">
+          <span class="tag">Wall edition</span>
+          <img src="assets/mockup-wall.png" alt="Meridian wall edition — concept render">
+          <figcaption class="mono"><span>WALL / 01</span><span>Machined aluminum · flush mount</span></figcaption>
+        </figure>
+        <figure class="mockup">
+          <span class="tag">Desk edition</span>
+          <img src="assets/mockup-desk.png" alt="Meridian desk edition — concept render">
+          <figcaption class="mono"><span>DESK / 02</span><span>Solid oak stand · USB-C powered</span></figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="block" id="features">
+    <div class="wrap">
+      <div class="block-head">
+        <h2>Everything the sky does, it does</h2>
+        <span class="sec-num mono">SEC / 02</span>
+      </div>
+      <div class="feat-grid">
+        <div class="feat"><span class="idx mono">F/01</span><h3>Live for life</h3><p>Free live updates from our central API — forever, no subscription. New themes, styles, and sky events delivered to your clock.</p></div>
+        <div class="feat"><span class="idx mono">F/02</span><h3>Open source</h3><p>The renderer and server are open. Run your own API on your own hardware. Your clock, your rules, your data.</p></div>
+        <div class="feat"><span class="idx mono">F/03</span><h3>Themes &amp; styles</h3><p>A growing library of color themes and dial styles — from minimal instrument to full ceremonial wheel.</p></div>
+        <div class="feat"><span class="idx mono">F/04</span><h3>Personal presets</h3><p>Save lat/lon, birth times, and meaningful dates. Pull up natal charts and live transits against them, any time.</p></div>
+        <div class="feat"><span class="idx mono">F/05</span><h3>Dial time by hand</h3><p>Drag your finger around the bezel to advance or rewind time and watch the planets move. Retrograde made visceral.</p></div>
+        <div class="feat"><span class="idx mono">F/06</span><h3>Any planet's sky</h3><p>See the zodiac projected from Mars, the Moon, or anywhere in the solar system — with special themes per world.</p></div>
+        <div class="feat"><span class="idx mono">F/07</span><h3>Live planetary views</h3><p>Where live imagery exists — the Moon tonight, and more as feeds allow — rendered right on the dial.</p></div>
+        <div class="feat"><span class="idx mono">F/08</span><h3>CircleThrice inside</h3><p>3-month trial membership included. Members tap the screen to push moments straight into their CircleThrice planner.</p></div>
+        <div class="feat"><span class="idx mono">F/09</span><h3>E-paper option</h3><p>Prefer paper-calm? A 4″ or 6″ round color e-paper variant sips power and glows never.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ANY SKY -->
+  <section class="block sky" id="sky">
+    <div class="wrap">
+      <div class="block-head">
+        <h2>Real charts, rendered by the real engine</h2>
+        <span class="sec-num mono">SEC / 03</span>
+      </div>
+      <div class="sky-grid">
+        <div class="sky-card">
+          <img src="assets/chart-portland.svg" alt="Chart — Portland now">
+          <h4>Home sky</h4>
+          <p>Portland, Oregon · live local horizon, Ascendant at the left, true planetary longitudes.</p>
+        </div>
+        <div class="sky-card">
+          <img src="assets/chart-equinox.svg" alt="Chart — London equinox">
+          <h4>Any moment</h4>
+          <p>London · vernal equinox 2026. Dial to any date — birth, launch, anniversary — and hold it there.</p>
+        </div>
+        <div class="sky-card">
+          <img src="assets/chart-mars.svg" alt="Chart — Mars projection">
+          <h4>Any world</h4>
+          <p>Mars, Elysium Planitia · the zodiac as seen from another planet, with its own theme.</p>
+        </div>
+      </div>
+      <p class="sky-note">Every chart on this page was rendered by <b>Astro Bling</b> — the actual open-source engine that ships inside the Meridian. No mockups, no hand-drawn fakes. What you see is the product.</p>
+    </div>
+  </section>
+
+  <!-- MOTION -->
+  <section class="block">
+    <div class="wrap">
+      <div class="block-head">
+        <h2>Time you can turn</h2>
+        <span class="sec-num mono">SEC / 04</span>
+      </div>
+      <div class="motion-grid">
+        <div class="motion-copy">
+          <h3>Watch a retrograde happen</h3>
+          <p>Rendered by the Meridian's own engine: weeks of planetary motion compressed into seconds. On the device, your finger is the timeline.</p>
+          <ul>
+            <li>Direction arrows and halos mark retrograde stations</li>
+            <li>Aspect lines form and dissolve in real time</li>
+            <li>Speed follows your hand — one degree or one decade per turn</li>
+          </ul>
+        </div>
+        <video src="assets/demo-retro.mp4" autoplay muted loop playsinline></video>
+      </div>
+    </div>
+  </section>
+
+  <!-- REWARDS -->
+  <section class="block" id="rewards">
+    <div class="wrap">
+      <div class="block-head">
+        <h2>Rewards</h2>
+        <span class="sec-num mono">SEC / 05</span>
+      </div>
+      <div class="tiers">
+        <div class="tier">
+          <span class="name">Early believer</span>
+          <div class="price">$49</div>
+          <ul>
+            <li>The Astro Bling app (all platforms)</li>
+            <li>Every theme pack, forever</li>
+            <li>Name in the backers' constellation</li>
+            <li>3-month CircleThrice trial</li>
+          </ul>
+          <a class="btn" href="#">Select reward</a>
+        </div>
+        <div class="tier hot">
+          <span class="ribbon">Early bird</span>
+          <span class="name">Meridian — desk or wall</span>
+          <div class="price">$349</div>
+          <ul>
+            <li>One Meridian clock (4″ round HDMI)</li>
+            <li>Wall mount + desk stand included</li>
+            <li>Lifetime free live updates</li>
+            <li>3-month CircleThrice trial</li>
+            <li>Launch-edition engraving</li>
+          </ul>
+          <a class="btn" href="#">Select reward</a>
+        </div>
+        <div class="tier">
+          <span class="name">Meridian E-Ink</span>
+          <div class="price">$399</div>
+          <ul>
+            <li>Round color e-paper edition (4″ or 6″)</li>
+            <li>Months of battery-sipping stillness</li>
+            <li>Lifetime free live updates</li>
+            <li>3-month CircleThrice trial</li>
+          </ul>
+          <a class="btn" href="#">Select reward</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OPEN -->
+  <section class="block">
+    <div class="wrap">
+      <div class="block-head">
+        <h2>Open, because instruments should be</h2>
+        <span class="sec-num mono">SEC / 06</span>
+      </div>
+      <div class="open-grid">
+        <div>
+          <h3>The engine is already open</h3>
+          <p>Astro Bling — the renderer at the heart of the Meridian — is open source today. It computes the classical planets, Ascendant, and Midheaven locally with Swiss Ephemeris data, and renders SVG or animation with no network required.</p>
+          <h3>Run your own sky server</h3>
+          <p>Backers get the full API server source. Point your clock at our cloud for zero effort, or at a Raspberry Pi in your closet for total sovereignty. Same protocol, same themes.</p>
+          <h3>No subscription for the sky</h3>
+          <p>Live updates are free for the life of the device. CircleThrice membership adds planner integration — the clock never stops being a clock without it.</p>
+        </div>
+        <pre class="code-card mono"><span class="c"># render your sky, right now</span>
+<span class="h">$</span> astro-bling --lat 45.51 --lon -122.68
+
+<span class="c"># or a moment that matters</span>
+<span class="h">$</span> astro-bling --date 1990-06-14T07:22 \
+     --lat 51.50 --lon -0.12
+
+<span class="c"># your own server, one command</span>
+<span class="h">$</span> meridian-server --port 8443</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="block" id="faq">
+    <div class="wrap">
+      <div class="block-head">
+        <h2>Questions</h2>
+        <span class="sec-num mono">SEC / 07</span>
+      </div>
+      <div class="faq-list">
+        <details class="faq"><summary>Does it need a subscription?</summary><p>No. Live sky updates, themes, and firmware are free for the life of the device. The optional CircleThrice membership adds planner integration and community features — the clock is fully functional without it.</p></details>
+        <details class="faq"><summary>Is the astrology engine really included?</summary><p>Yes. Swiss Ephemeris runs on-device; the clock computes positions locally. The network only adds themes, live imagery, and convenience — accuracy never depends on a connection.</p></details>
+        <details class="faq"><summary>What's the difference between HDMI and e-paper editions?</summary><p>The 4″ round HDMI display is vivid, animated, and touch-driven — dial time with your fingers. The round color e-paper edition trades animation for a calm, paper-like face and extremely low power draw.</p></details>
+        <details class="faq"><summary>Can I really run my own server?</summary><p>Yes — the API server ships as open source to backers. One command, any small machine. Your clock accepts a custom server URL in settings.</p></details>
+        <details class="faq"><summary>When does it ship?</summary><p>Targeting 9 months after campaign close: prototypes exist today (every chart on this page is real), and the remaining work is industrial design, boards, and certification.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="final">
+    <div class="wrap">
+      <h2>Own the sky<br>above you.</h2>
+      <p>Back the Meridian and put a living astronomical instrument on your wall.</p>
+      <a class="btn" href="#rewards">Back this project ↗</a>
+      <p class="fine">Concept campaign preview · Oregon Dev Foundry · Portland, Oregon</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span>Oregon Dev Foundry</span>
+    </a>
+    <span>Independent software company · Portland, Oregon</span>
+    <span><a href="https://odf.barnlab.dev">odf.barnlab.dev</a> · © 2026 ODF</span>
+  </div>
+</footer>
+
+</body>
+</html>

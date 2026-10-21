@@ -1,8 +1,10 @@
 package web
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/cookiejar"
@@ -72,6 +74,65 @@ func TestPublicRoutes(t *testing.T) {
 				t.Fatalf("GET %s: status=%d body=%q", test.path, response.Code, response.Body.String())
 			}
 		})
+	}
+}
+
+func TestMeridianPresaleRedirect(t *testing.T) {
+	handler := testHandler(t, &fakeSender{}, fakeVerifier{})
+	request := httptest.NewRequest(http.MethodGet, "/meridian-presale", nil)
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	if response.Code < 300 || response.Code >= 400 {
+		t.Fatalf("status=%d, want redirect", response.Code)
+	}
+	if got := response.Header().Get("Location"); got != "/meridian-presale/" {
+		t.Fatalf("Location=%q, want /meridian-presale/", got)
+	}
+	location, err := url.Parse(response.Header().Get("Location"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	assetURL := request.URL.ResolveReference(location).ResolveReference(&url.URL{Path: "assets/chart-portland.svg"})
+	assetResponse := httptest.NewRecorder()
+	handler.ServeHTTP(assetResponse, httptest.NewRequest(http.MethodGet, assetURL.String(), nil))
+	if assetResponse.Code != http.StatusOK {
+		t.Fatalf("relative asset %s: status=%d", assetURL, assetResponse.Code)
+	}
+	if got := assetResponse.Header().Get("Content-Type"); got != "image/svg+xml" {
+		t.Fatalf("relative asset Content-Type=%q, want image/svg+xml", got)
+	}
+}
+
+func TestMeridianPresaleVideoRange(t *testing.T) {
+	handler := testHandler(t, &fakeSender{}, fakeVerifier{})
+	const path = "/meridian-presale/assets/demo-retro.mp4"
+	full := httptest.NewRecorder()
+	handler.ServeHTTP(full, httptest.NewRequest(http.MethodGet, path, nil))
+	if full.Code != http.StatusOK {
+		t.Fatalf("full video status=%d, want %d", full.Code, http.StatusOK)
+	}
+	if full.Body.Len() < 32 {
+		t.Fatalf("video too short: %d bytes", full.Body.Len())
+	}
+	request := httptest.NewRequest(http.MethodGet, path, nil)
+	request.Header.Set("Range", "bytes=16-31")
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	if response.Code != http.StatusPartialContent {
+		t.Fatalf("range status=%d, want %d", response.Code, http.StatusPartialContent)
+	}
+	for name, want := range map[string]string{
+		"Content-Type":   "video/mp4",
+		"Accept-Ranges":  "bytes",
+		"Content-Range":  fmt.Sprintf("bytes 16-31/%d", full.Body.Len()),
+		"Content-Length": "16",
+	} {
+		if got := response.Header().Get(name); got != want {
+			t.Errorf("%s=%q, want %q", name, got, want)
+		}
+	}
+	if !bytes.Equal(response.Body.Bytes(), full.Body.Bytes()[16:32]) {
+		t.Fatal("range response does not match requested video bytes")
 	}
 }
 

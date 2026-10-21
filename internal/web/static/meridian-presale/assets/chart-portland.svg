@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="720" viewBox="0 0 720 720" role="img" aria-labelledby="title description">
+<title id="title">Live astrological orrery</title>
+<desc id="description">Classical planets at 2026-08-05T18:00:00Z for latitude 45.51520 and longitude -122.67840.</desc>
+<metadata>julian-day=2461258.25000000 ascendant=188.785824 midheaven=100.687808</metadata>
+<defs>
+  <clipPath id="dial-clip"><circle cx="360" cy="360" r="358"/></clipPath>
+  <filter id="node-shadow" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#17202a" flood-opacity="0.22"/></filter>
+  <marker id="arrow-sun" viewBox="0 0 8 8" refX="6.5" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z" fill="#e6bf2f"/></marker>
+  <marker id="arrow-mercury" viewBox="0 0 8 8" refX="6.5" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z" fill="#d66b45"/></marker>
+  <marker id="arrow-venus" viewBox="0 0 8 8" refX="6.5" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z" fill="#368e70"/></marker>
+  <marker id="arrow-moon" viewBox="0 0 8 8" refX="6.5" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z" fill="#8493b4"/></marker>
+  <marker id="arrow-mars" viewBox="0 0 8 8" refX="6.5" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z" fill="#a73334"/></marker>
+  <marker id="arrow-jupiter" viewBox="0 0 8 8" refX="6.5" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z" fill="#8379c5"/></marker>
+  <marker id="arrow-saturn" viewBox="0 0 8 8" refX="6.5" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z" fill="#4e548d"/></marker>
+</defs>
+<g clip-path="url(#dial-clip)">
+  <circle cx="360" cy="360" r="358" fill="#f8f7f2"/>
+  <line x1="22" y1="360" x2="698" y2="360" stroke="#bcc4c8" stroke-width="1.2"/>
+  <line x1="348.75" y1="21.19" x2="371.25" y2="698.81" stroke="#9da9af" stroke-width="1.2"/>
+  <circle cx="360" cy="360" r="56.0" fill="none" stroke="#cbd9df" stroke-width="2.2"/>
+  <circle cx="360" cy="360" r="86.0" fill="none" stroke="#cbd9df" stroke-width="2.2"/>
+  <circle cx="360" cy="360" r="116.0" fill="none" stroke="#cbd9df" stroke-width="2.2"/>
+  <circle cx="360" cy="360" r="146.0" fill="none" stroke="#cbd9df" stroke-width="2.2"/>
+  <circle cx="360" cy="360" r="176.0" fill="none" stroke="#cbd9df" stroke-width="2.2"/>
+  <circle cx="360" cy="360" r="206.0" fill="none" stroke="#cbd9df" stroke-width="2.2"/>
+  <circle cx="360" cy="360" r="236.0" fill="none" stroke="#cbd9df" stroke-width="2.2"/>
+  <line x1="486.39" y1="286.91" x2="259.42" y2="180.22" stroke="#75848b" stroke-width="1.4" stroke-dasharray="5 7" stroke-linecap="round" opacity="0.34"/>
+  <line x1="328.24" y1="313.88" x2="594.76" y2="335.82" stroke="#75848b" stroke-width="1.4" stroke-dasharray="5 7" stroke-linecap="round" opacity="0.31"/>
+  <line x1="245.71" y1="340.16" x2="398.16" y2="188.19" stroke="#75848b" stroke-width="1.4" stroke-dasharray="5 7" stroke-linecap="round" opacity="0.24"/>
+  <circle cx="360" cy="360" r="286.0" fill="none" stroke="#7e8a90" stroke-width="1.4"/>
+  <circle cx="360" cy="360" r="342.0" fill="none" stroke="#7e8a90" stroke-width="1.4"/>
+  <line x1="634.74" y1="402.46" x2="651.54" y2="405.06" stroke="#758087" stroke-width="1.7"/>
+  <line x1="647.37" y1="379.02" x2="654.36" y2="379.48" stroke="#758087" stroke-width="0.8"/>
+  <line x1="643.94" y1="353.98" x2="654.93" y2="353.75" stroke="#758087" stroke-width="1.1"/>
+  <line x1="646.31" y1="328.83" x2="653.27" y2="328.07" stroke="#758087" stroke-width="0.8"/>
+  <line x1="638.58" y1="304.77" x2="649.37" y2="302.63" stroke="#758087" stroke-width="1.1"/>
+  <line x1="636.54" y1="279.58" x2="643.27" y2="277.63" stroke="#758087" stroke-width="0.8"/>
+  <line x1="619.16" y1="259.40" x2="635.01" y2="253.25" stroke="#758087" stroke-width="1.7"/>
+  <line x1="618.38" y1="232.78" x2="624.66" y2="229.69" stroke="#758087" stroke-width="0.8"/>
+  <line x1="602.89" y1="212.82" x2="612.29" y2="207.12" stroke="#758087" stroke-width="1.1"/>
+  <line x1="592.36" y1="189.85" x2="598.01" y2="185.71" stroke="#758087" stroke-width="0.8"/>
+  <line x1="573.64" y1="172.88" x2="581.91" y2="165.63" stroke="#758087" stroke-width="1.1"/>
+  <line x1="559.29" y1="152.08" x2="564.13" y2="147.03" stroke="#758087" stroke-width="0.8"/>
+  <line x1="534.14" y1="143.30" x2="544.79" y2="130.05" stroke="#758087" stroke-width="1.7"/>
+  <line x1="520.15" y1="120.64" x2="524.05" y2="114.82" stroke="#758087" stroke-width="0.8"/>
+  <line x1="496.76" y1="111.10" x2="502.05" y2="101.45" stroke="#758087" stroke-width="1.1"/>
+  <line x1="476.16" y1="96.46" x2="478.98" y2="90.06" stroke="#758087" stroke-width="0.8"/>
+  <line x1="451.46" y1="91.13" x2="455.00" y2="80.71" stroke="#758087" stroke-width="1.1"/>
+  <line x1="428.63" y1="80.30" x2="430.30" y2="73.50" stroke="#758087" stroke-width="0.8"/>
+  <line x1="402.46" y1="85.26" x2="405.06" y2="68.46" stroke="#758087" stroke-width="1.7"/>
+  <line x1="379.02" y1="72.63" x2="379.48" y2="65.64" stroke="#758087" stroke-width="0.8"/>
+  <line x1="353.98" y1="76.06" x2="353.75" y2="65.07" stroke="#758087" stroke-width="1.1"/>
+  <line x1="328.83" y1="73.69" x2="328.07" y2="66.73" stroke="#758087" stroke-width="0.8"/>
+  <line x1="304.77" y1="81.42" x2="302.63" y2="70.63" stroke="#758087" stroke-width="1.1"/>
+  <line x1="279.58" y1="83.46" x2="277.63" y2="76.73" stroke="#758087" stroke-width="0.8"/>
+  <line x1="259.40" y1="100.84" x2="253.25" y2="84.99" stroke="#758087" stroke-width="1.7"/>
+  <line x1="232.78" y1="101.62" x2="229.69" y2="95.34" stroke="#758087" stroke-width="0.8"/>
+  <line x1="212.82" y1="117.11" x2="207.12" y2="107.71" stroke="#758087" stroke-width="1.1"/>
+  <line x1="189.85" y1="127.64" x2="185.71" y2="121.99" stroke="#758087" stroke-width="0.8"/>
+  <line x1="172.88" y1="146.36" x2="165.63" y2="138.09" stroke="#758087" stroke-width="1.1"/>
+  <line x1="152.08" y1="160.71" x2="147.03" y2="155.87" stroke="#758087" stroke-width="0.8"/>
+  <line x1="143.30" y1="185.86" x2="130.05" y2="175.21" stroke="#758087" stroke-width="1.7"/>
+  <line x1="120.64" y1="199.85" x2="114.82" y2="195.95" stroke="#758087" stroke-width="0.8"/>
+  <line x1="111.10" y1="223.24" x2="101.45" y2="217.95" stroke="#758087" stroke-width="1.1"/>
+  <line x1="96.46" y1="243.84" x2="90.06" y2="241.02" stroke="#758087" stroke-width="0.8"/>
+  <line x1="91.13" y1="268.54" x2="80.71" y2="265.00" stroke="#758087" stroke-width="1.1"/>
+  <line x1="80.30" y1="291.37" x2="73.50" y2="289.70" stroke="#758087" stroke-width="0.8"/>
+  <line x1="85.26" y1="317.54" x2="68.46" y2="314.94" stroke="#758087" stroke-width="1.7"/>
+  <line x1="72.63" y1="340.98" x2="65.64" y2="340.52" stroke="#758087" stroke-width="0.8"/>
+  <line x1="76.06" y1="366.02" x2="65.07" y2="366.25" stroke="#758087" stroke-width="1.1"/>
+  <line x1="73.69" y1="391.17" x2="66.73" y2="391.93" stroke="#758087" stroke-width="0.8"/>
+  <line x1="81.42" y1="415.23" x2="70.63" y2="417.37" stroke="#758087" stroke-width="1.1"/>
+  <line x1="83.46" y1="440.42" x2="76.73" y2="442.37" stroke="#758087" stroke-width="0.8"/>
+  <line x1="100.84" y1="460.60" x2="84.99" y2="466.75" stroke="#758087" stroke-width="1.7"/>
+  <line x1="101.62" y1="487.22" x2="95.34" y2="490.31" stroke="#758087" stroke-width="0.8"/>
+  <line x1="117.11" y1="507.18" x2="107.71" y2="512.88" stroke="#758087" stroke-width="1.1"/>
+  <line x1="127.64" y1="530.15" x2="121.99" y2="534.29" stroke="#758087" stroke-width="0.8"/>
+  <line x1="146.36" y1="547.12" x2="138.09" y2="554.37" stroke="#758087" stroke-width="1.1"/>
+  <line x1="160.71" y1="567.92" x2="155.87" y2="572.97" stroke="#758087" stroke-width="0.8"/>
+  <line x1="185.86" y1="576.70" x2="175.21" y2="589.95" stroke="#758087" stroke-width="1.7"/>
+  <line x1="199.85" y1="599.36" x2="195.95" y2="605.18" stroke="#758087" stroke-width="0.8"/>
+  <line x1="223.24" y1="608.90" x2="217.95" y2="618.55" stroke="#758087" stroke-width="1.1"/>
+  <line x1="243.84" y1="623.54" x2="241.02" y2="629.94" stroke="#758087" stroke-width="0.8"/>
+  <line x1="268.54" y1="628.87" x2="265.00" y2="639.29" stroke="#758087" stroke-width="1.1"/>
+  <line x1="291.37" y1="639.70" x2="289.70" y2="646.50" stroke="#758087" stroke-width="0.8"/>
+  <line x1="317.54" y1="634.74" x2="314.94" y2="651.54" stroke="#758087" stroke-width="1.7"/>
+  <line x1="340.98" y1="647.37" x2="340.52" y2="654.36" stroke="#758087" stroke-width="0.8"/>
+  <line x1="366.02" y1="643.94" x2="366.25" y2="654.93" stroke="#758087" stroke-width="1.1"/>
+  <line x1="391.17" y1="646.31" x2="391.93" y2="653.27" stroke="#758087" stroke-width="0.8"/>
+  <line x1="415.23" y1="638.58" x2="417.37" y2="649.37" stroke="#758087" stroke-width="1.1"/>
+  <line x1="440.42" y1="636.54" x2="442.37" y2="643.27" stroke="#758087" stroke-width="0.8"/>
+  <line x1="460.60" y1="619.16" x2="466.75" y2="635.01" stroke="#758087" stroke-width="1.7"/>
+  <line x1="487.22" y1="618.38" x2="490.31" y2="624.66" stroke="#758087" stroke-width="0.8"/>
+  <line x1="507.18" y1="602.89" x2="512.88" y2="612.29" stroke="#758087" stroke-width="1.1"/>
+  <line x1="530.15" y1="592.36" x2="534.29" y2="598.01" stroke="#758087" stroke-width="0.8"/>
+  <line x1="547.12" y1="573.64" x2="554.37" y2="581.91" stroke="#758087" stroke-width="1.1"/>
+  <line x1="567.92" y1="559.29" x2="572.97" y2="564.13" stroke="#758087" stroke-width="0.8"/>
+  <line x1="576.70" y1="534.14" x2="589.95" y2="544.79" stroke="#758087" stroke-width="1.7"/>
+  <line x1="599.36" y1="520.15" x2="605.18" y2="524.05" stroke="#758087" stroke-width="0.8"/>
+  <line x1="608.90" y1="496.76" x2="618.55" y2="502.05" stroke="#758087" stroke-width="1.1"/>
+  <line x1="623.54" y1="476.16" x2="629.94" y2="478.98" stroke="#758087" stroke-width="0.8"/>
+  <line x1="628.87" y1="451.46" x2="639.29" y2="455.00" stroke="#758087" stroke-width="1.1"/>
+  <line x1="639.70" y1="428.63" x2="646.50" y2="430.30" stroke="#758087" stroke-width="0.8"/>
+  <text x="674.14" y="325.79" text-anchor="middle" dominant-baseline="central" fill="#55636b" font-size="27" font-family="Physis">♈︎</text>
+  <text x="614.95" y="173.31" text-anchor="middle" dominant-baseline="central" fill="#55636b" font-size="27" font-family="Physis">♉︎</text>
+  <text x="487.45" y="70.84" text-anchor="middle" dominant-baseline="central" fill="#55636b" font-size="27" font-family="Physis">♊︎</text>
+  <text x="325.79" y="45.86" text-anchor="middle" dominant-baseline="central" fill="#55636b" font-size="27" font-family="Physis">♋︎</text>
+  <text x="173.31" y="105.05" text-anchor="middle" dominant-baseline="central" fill="#55636b" font-size="27" font-family="Physis">♌︎</text>
+  <text x="70.84" y="232.55" text-anchor="middle" dominant-baseline="central" fill="#55636b" font-size="27" font-family="Physis">♍︎</text>
+  <text x="45.86" y="394.21" text-anchor="middle" dominant-baseline="central" fill="#55636b" font-size="27" font-family="Physis">♎︎</text>
+  <text x="105.05" y="546.69" text-anchor="middle" dominant-baseline="central" fill="#55636b" font-size="27" font-family="Physis">♏︎</text>
+  <text x="232.55" y="649.16" text-anchor="middle" dominant-baseline="central" fill="#55636b" font-size="27" font-family="Physis">♐︎</text>
+  <text x="394.21" y="674.14" text-anchor="middle" dominant-baseline="central" fill="#55636b" font-size="27" font-family="Physis">♑︎</text>
+  <text x="546.69" y="614.95" text-anchor="middle" dominant-baseline="central" fill="#55636b" font-size="27" font-family="Physis">♒︎</text>
+  <text x="649.16" y="487.45" text-anchor="middle" dominant-baseline="central" fill="#55636b" font-size="27" font-family="Physis">♓︎</text>
+  <path d="M 345.44 305.93 A 56.0 56.0 0 0 0 333.99 310.41" fill="none" stroke="#e6bf2f" stroke-width="3.1" stroke-linecap="round" marker-end="url(#arrow-sun)" opacity="0.92"/>
+  <circle cx="328.24" cy="313.88" r="17" fill="#e6bf2f" stroke="#ffffff" stroke-width="2" filter="url(#node-shadow)"/>
+  <text x="328.24" y="314.38" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="24" font-weight="600" font-family="Physis">☉</text>
+  <path d="M 365.77 274.19 A 86.0 86.0 0 0 0 346.91 275.00" fill="none" stroke="#d66b45" stroke-width="3.1" stroke-linecap="round" marker-end="url(#arrow-mercury)" opacity="0.92"/>
+  <circle cx="336.83" cy="277.18" r="17" fill="#d66b45" stroke="#ffffff" stroke-width="2" filter="url(#node-shadow)"/>
+  <text x="336.83" y="277.68" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="24" font-weight="600" font-family="Physis">☿</text>
+  <path d="M 258.87 303.18 A 116.0 116.0 0 0 0 248.91 326.62" fill="none" stroke="#368e70" stroke-width="3.1" stroke-linecap="round" marker-end="url(#arrow-venus)" opacity="0.92"/>
+  <circle cx="245.71" cy="340.16" r="17" fill="#368e70" stroke="#ffffff" stroke-width="2" filter="url(#node-shadow)"/>
+  <text x="245.71" y="340.66" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="24" font-weight="600" font-family="Physis">♀</text>
+  <path d="M 503.53 333.24 A 146.0 146.0 0 0 0 494.23 302.56" fill="none" stroke="#8493b4" stroke-width="3.1" stroke-linecap="round" marker-end="url(#arrow-moon)" opacity="0.92"/>
+  <circle cx="486.39" cy="286.91" r="17" fill="#8493b4" stroke="#ffffff" stroke-width="2" filter="url(#node-shadow)"/>
+  <text x="486.39" y="287.41" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="24" font-weight="600" font-family="Physis">☾</text>
+  <path d="M 453.27 210.75 A 176.0 176.0 0 0 0 418.45 193.99" fill="none" stroke="#a73334" stroke-width="3.1" stroke-linecap="round" marker-end="url(#arrow-mars)" opacity="0.92"/>
+  <circle cx="398.16" cy="188.19" r="17" fill="#a73334" stroke="#ffffff" stroke-width="2" filter="url(#node-shadow)"/>
+  <text x="398.16" y="188.69" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="24" font-weight="600" font-family="Physis">♂</text>
+  <path d="M 325.13 156.97 A 206.0 206.0 0 0 0 281.66 169.48" fill="none" stroke="#8379c5" stroke-width="3.1" stroke-linecap="round" marker-end="url(#arrow-jupiter)" opacity="0.92"/>
+  <circle cx="259.42" cy="180.22" r="17" fill="#8379c5" stroke="#ffffff" stroke-width="2" filter="url(#node-shadow)"/>
+  <text x="259.42" y="180.72" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="24" font-weight="600" font-family="Physis">♃</text>
+  <path d="M 573.26 258.92 A 236.0 236.0 0 0 1 590.18 307.89" fill="none" stroke="#4e548d" stroke-width="3.1" stroke-linecap="round" marker-end="url(#arrow-saturn)" opacity="0.92"/>
+  <circle cx="594.76" cy="335.82" r="24" fill="#4e548d" opacity="0.14"/>
+  <circle cx="594.76" cy="335.82" r="17" fill="#4e548d" stroke="#ffffff" stroke-width="2" filter="url(#node-shadow)"/>
+  <text x="594.76" y="336.32" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="24" font-weight="600" font-family="Physis">♄</text>
+  <circle cx="360" cy="360" r="19" fill="#f8f7f2" stroke="#aeb8bd" stroke-width="1.4"/>
+  <line x1="347" y1="360" x2="373" y2="360" stroke="#aeb8bd" stroke-width="1.2"/>
+  <line x1="360" y1="347" x2="360" y2="373" stroke="#aeb8bd" stroke-width="1.2"/>
+  <circle cx="360" cy="360" r="2.2" fill="#8d999f"/>
+</g>
+<circle cx="360" cy="360" r="357" fill="none" stroke="#64717a" stroke-width="2"/>
+</svg>

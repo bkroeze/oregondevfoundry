@@ -3,10 +3,13 @@ package web
 import (
 	"bytes"
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/bkroeze/oregon-dev-foundry/internal/commerce"
+	"github.com/bkroeze/oregon-dev-foundry/internal/config"
 	"github.com/bkroeze/oregon-dev-foundry/internal/templates"
 )
 
@@ -23,6 +26,16 @@ func TestSignageSelectionUsesActiveNotInventory(t *testing.T) {
 	}
 	if !data.Available || !data.StandActive || data.StandID != "20" || data.ImageURL != "" {
 		t.Fatalf("unexpected preview state: %+v", data)
+	}
+}
+
+func TestSignageSelectionRecognizesLegacyStandSKU(t *testing.T) {
+	data := signagePageData(commerce.Product{
+		SKUs:   []commerce.SKU{{ID: 11, Name: "4x4 Slate", Active: true}},
+		Addons: []commerce.SKU{{ID: 20, SKU: "wooden-stand", Active: true}},
+	}, nil)
+	if !data.StandActive || data.StandID != "20" {
+		t.Fatalf("legacy stand was not recognized: %+v", data)
 	}
 }
 
@@ -64,5 +77,28 @@ func TestSignageUnavailableAndAccessiblePreviewFields(t *testing.T) {
 		if strings.Contains(html, forbidden) {
 			t.Errorf("unexpected obsolete or purchasing UI %q", forbidden)
 		}
+	}
+}
+
+func TestVendingSignagePageUsesExistingMasterSKU(t *testing.T) {
+	users := testStore(t)
+	catalog, err := commerce.New(users.DB())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := catalog.CreateProduct(t.Context(), commerce.ProductParams{
+		Slug: "slate-signage", MasterSKU: "SLATE-SIGNAGE", Name: "Slate Vendor Signage",
+		Type: commerce.ProductTypeOneTime, Active: true,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	handler := NewHandlerWithCommerce(config.Config{ServicesEnabled: true}, &fakeSender{}, fakeVerifier{}, users, catalog, nil, nil)
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/shop/vending-signage", nil))
+	if response.Code != http.StatusOK {
+		t.Fatalf("status=%d, want %d; body=%s", response.Code, http.StatusOK, response.Body.String())
+	}
+	if !strings.Contains(response.Body.String(), `data-signage`) {
+		t.Fatalf("response does not render signage page: %s", response.Body.String())
 	}
 }

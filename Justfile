@@ -111,3 +111,8 @@ docker-push: docker-build
       exit 2
     fi
     docker push "{{ image }}"
+
+# Build and push a release image with a required tag.
+docker-release tag:
+    @test -n {{ quote(tag) }} || { echo "TAG must not be empty." >&2; exit 2; }
+    @just --set image {{ quote(replace_regex(image, ':[^/]*$', '') + ':' + tag) }} docker-push
