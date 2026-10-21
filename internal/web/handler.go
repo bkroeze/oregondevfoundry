@@ -80,6 +80,7 @@ func NewHandlerWithCommerce(cfg config.Config, sender contact.Sender, verifier c
 	mux.HandleFunc("POST /api/contact", h.submitContact)
 	mux.Handle("GET /styles.css", cache(http.FileServer(http.FS(static))))
 	mux.Handle("GET /script.js", cache(http.FileServer(http.FS(static))))
+	mux.Handle("GET /meridian-presale/", cache(http.FileServer(http.FS(static))))
 	mux.HandleFunc("GET /media/products/{filename}", h.productImage)
 	if cfg.TestimonialsEnabled {
 		mux.Handle("GET /assets/testimonials/", cache(http.FileServer(http.FS(static))))

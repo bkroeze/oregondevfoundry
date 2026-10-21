@@ -108,6 +108,27 @@ func TestEnsureSignageCatalogLeavesExistingCatalogUntouched(t *testing.T) {
 	}
 }
 
+func TestEnsureSignageCatalogLeavesExistingMasterSKUUntouched(t *testing.T) {
+	store, _ := newTestStore(t)
+	existing, err := store.CreateProduct(t.Context(), ProductParams{
+		Slug: "slate-signage", MasterSKU: "SLATE-SIGNAGE", Name: "Slate Vendor Signage",
+		Type: ProductTypeOneTime, Active: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.EnsureSignageCatalog(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+	after, err := store.ProductByID(t.Context(), existing.ID)
+	if err != nil || !reflect.DeepEqual(existing, after) {
+		t.Fatalf("existing master SKU catalog changed: %#v, %v", after, err)
+	}
+	if _, err := store.ProductBySlug(t.Context(), "vending-signage"); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("seeded duplicate catalog: %v", err)
+	}
+}
+
 func TestEnsureSignageCatalogRollsBackPartialSeed(t *testing.T) {
 	store, _ := newTestStore(t)
 	other := imageTestProduct(t, store, "conflict")

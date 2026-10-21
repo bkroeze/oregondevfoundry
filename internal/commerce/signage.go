@@ -29,7 +29,7 @@ func (s *Store) EnsureSignageCatalog(ctx context.Context) error {
 		return tx.Commit()
 	}
 	var exists bool
-	if err := tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM commerce_products WHERE slug='vending-signage' COLLATE NOCASE)`).Scan(&exists); err != nil {
+	if err := tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM commerce_products WHERE slug='vending-signage' COLLATE NOCASE OR master_sku='SLATE-SIGNAGE' COLLATE NOCASE)`).Scan(&exists); err != nil {
 		return fmt.Errorf("inspect signage catalog: %w", err)
 	}
 	if exists {

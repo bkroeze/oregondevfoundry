@@ -2,6 +2,7 @@ package web
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -306,6 +307,7 @@ func pathID(r *http.Request, name string) (int64, error) {
 func (h Handler) redirectAdminProduct(w http.ResponseWriter, r *http.Request, id int64, status string) {
 	http.Redirect(w, r, "/admin/products/"+strconv.FormatInt(id, 10)+"?status="+strings.ReplaceAll(status, " ", "+"), http.StatusSeeOther)
 }
-func (h Handler) adminInputError(w http.ResponseWriter, _ error) {
+func (h Handler) adminInputError(w http.ResponseWriter, err error) {
+	slog.Warn("invalid admin product input", "error", err)
 	http.Error(w, "invalid product data", http.StatusUnprocessableEntity)
 }
