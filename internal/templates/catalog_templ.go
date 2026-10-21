@@ -66,7 +66,7 @@ func CatalogStatusForm(action string, active bool, token string, label string) t
 		var templ_7745c5c3_Var2 templ.SafeURL
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinURLErrs(action)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 24, Col: 22}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 34, Col: 22}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -79,7 +79,7 @@ func CatalogStatusForm(action string, active bool, token string, label string) t
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(token)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 25, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 35, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -92,7 +92,7 @@ func CatalogStatusForm(action string, active bool, token string, label string) t
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 26, Col: 16}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 37, Col: 10}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -181,7 +181,7 @@ func AdminCatalogPage(account AccountView, entries []CatalogEntry) templ.Compone
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(entry.Product.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 54, Col: 31}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 65, Col: 31}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -194,7 +194,7 @@ func AdminCatalogPage(account AccountView, entries []CatalogEntry) templ.Compone
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(entry.Product.MasterSKU)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 55, Col: 35}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 66, Col: 35}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -207,7 +207,7 @@ func AdminCatalogPage(account AccountView, entries []CatalogEntry) templ.Compone
 			var templ_7745c5c3_Var8 templ.SafeURL
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinURLErrs("/admin/products/" + catalogID(entry.Product.ID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 56, Col: 83}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 67, Col: 83}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -248,7 +248,7 @@ func AdminCatalogPage(account AccountView, entries []CatalogEntry) templ.Compone
 			var templ_7745c5c3_Var9 templ.SafeURL
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinURLErrs(catalogBase(entry.Product.ID) + "/images")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 68, Col: 61}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 79, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -261,13 +261,13 @@ func AdminCatalogPage(account AccountView, entries []CatalogEntry) templ.Compone
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(account.CSRFToken)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 69, Col: 72}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 80, Col: 72}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\"> <label>Image slot<select name=\"sku_id\"><option value=\"0\">Representative product default</option> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\"> <label>Image slot <select name=\"sku_id\"><option value=\"0\">Representative product default</option> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -279,7 +279,7 @@ func AdminCatalogPage(account AccountView, entries []CatalogEntry) templ.Compone
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(catalogID(sku.ID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 72, Col: 43}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 86, Col: 44}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -292,7 +292,7 @@ func AdminCatalogPage(account AccountView, entries []CatalogEntry) templ.Compone
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(sku.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 72, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 86, Col: 57}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -303,7 +303,7 @@ func AdminCatalogPage(account AccountView, entries []CatalogEntry) templ.Compone
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</select></label> <label>Optional add-on (requires a primary option)<select name=\"addon_sku_id\"><option value=\"0\">No add-on</option> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</select></label> <label>Optional add-on (requires a primary option) <select name=\"addon_sku_id\"><option value=\"0\">No add-on</option> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -315,7 +315,7 @@ func AdminCatalogPage(account AccountView, entries []CatalogEntry) templ.Compone
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(catalogID(sku.ID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 77, Col: 43}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 95, Col: 44}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
@@ -328,7 +328,7 @@ func AdminCatalogPage(account AccountView, entries []CatalogEntry) templ.Compone
 				var templ_7745c5c3_Var14 string
 				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(sku.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 77, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 95, Col: 57}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 				if templ_7745c5c3_Err != nil {
@@ -357,7 +357,7 @@ func AdminCatalogPage(account AccountView, entries []CatalogEntry) templ.Compone
 				var templ_7745c5c3_Var15 string
 				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs("/media/products/" + image.Filename)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 88, Col: 53}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 107, Col: 55}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 				if templ_7745c5c3_Err != nil {
@@ -370,7 +370,7 @@ func AdminCatalogPage(account AccountView, entries []CatalogEntry) templ.Compone
 				var templ_7745c5c3_Var16 string
 				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(entry.Product.Name + " — " + catalogImageLabel(entry.Product, image))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 88, Col: 128}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 107, Col: 134}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 				if templ_7745c5c3_Err != nil {
@@ -383,7 +383,7 @@ func AdminCatalogPage(account AccountView, entries []CatalogEntry) templ.Compone
 				var templ_7745c5c3_Var17 string
 				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(catalogImageLabel(entry.Product, image))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 89, Col: 62}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 108, Col: 62}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 				if templ_7745c5c3_Err != nil {
@@ -396,7 +396,7 @@ func AdminCatalogPage(account AccountView, entries []CatalogEntry) templ.Compone
 				var templ_7745c5c3_Var18 string
 				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(image.Width))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 89, Col: 96}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 108, Col: 96}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {
@@ -409,7 +409,7 @@ func AdminCatalogPage(account AccountView, entries []CatalogEntry) templ.Compone
 				var templ_7745c5c3_Var19 string
 				templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(image.Height))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 89, Col: 130}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/catalog.templ`, Line: 108, Col: 130}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 				if templ_7745c5c3_Err != nil {

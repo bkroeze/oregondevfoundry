@@ -43,22 +43,22 @@ templ ServicesPage(account AccountView) {
 }
 
 type SignageOption struct {
-	ID string
-	Name string
-	Active bool
-	Selected bool
-	ImageURL string
+	ID            string
+	Name          string
+	Active        bool
+	Selected      bool
+	ImageURL      string
 	StandImageURL string
 }
 
 type SignagePageData struct {
-	Account AccountView
-	Options []SignageOption
-	StandID string
+	Account     AccountView
+	Options     []SignageOption
+	StandID     string
 	StandActive bool
-	Available bool
-	ImageURL string
-	ImageAlt string
+	Available   bool
+	ImageURL    string
+	ImageAlt    string
 }
 
 templ VendingSignagePage(data SignagePageData) {
@@ -78,7 +78,10 @@ templ VendingSignagePage(data SignagePageData) {
 							<p>This is a preview and inquiry tool, not a checkout. Contact us to discuss your sign and confirm the details.</p>
 						</div>
 						<div class="product-preview signage-preview">
-							<img data-signage-image alt={ data.ImageAlt } hidden?={ data.ImageURL == "" }
+							<img
+								data-signage-image
+								alt={ data.ImageAlt }
+								hidden?={ data.ImageURL == "" }
 								if data.ImageURL != "" {
 									src={ data.ImageURL }
 								}
@@ -102,9 +105,10 @@ templ VendingSignagePage(data SignagePageData) {
 								for _, option := range data.Options {
 									<label>
 										<input type="radio" name="signage-size" value={ option.ID } checked?={ option.Selected } disabled?={ !option.Active } data-signage-size data-name={ option.Name } data-image={ option.ImageURL } data-stand-image={ option.StandImageURL }/>
-										<span>{ option.Name }
+										<span>
+											{ option.Name }
 											if !option.Active {
-												<small> — currently unavailable</small>
+												<small>— currently unavailable</small>
 											}
 										</span>
 									</label>
@@ -119,9 +123,10 @@ templ VendingSignagePage(data SignagePageData) {
 							<div class="option-grid">
 								<label>
 									<input type="checkbox" name="signage-stand" value={ data.StandID } data-signage-stand disabled?={ !data.StandActive || !data.Available }/>
-									<span>Add wooden stand?
+									<span>
+										Add wooden stand?
 										if !data.StandActive {
-											<small> — currently unavailable</small>
+											<small>— currently unavailable</small>
 										}
 									</span>
 								</label>
